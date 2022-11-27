@@ -9,6 +9,7 @@ module.exports = {
 
         if (message.author.bot) return
 
+       // console.log(message.content)
         if (!message.content.startsWith(prefix)) return
 
         const args = message.content.slice(prefix.length).trim().split(/ +/g)
@@ -33,7 +34,7 @@ module.exports = {
         catch (err) {
             let errMsg = err.toString()
 
-            if (err.Msg.startsWith("?")) {
+            if (errMsg.startsWith("?")) {
                 errMsg = errMsg.slice(1)
                 await message.reply(errMsg)
             }

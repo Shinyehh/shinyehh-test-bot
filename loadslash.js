@@ -3,10 +3,16 @@ require("dotenv").config()
 
 const client = new Discord.Client({
    intents: [
-    "Guilds",
-    "GuildMessages",
-    "MessageContent",
-    "GuildMembers"
+   //"Guilds",
+   // "GuildMessages",
+   // "MessageContent",
+   // "GuildMembers"
+    Discord.Intents.FLAGS.GUILDS,
+    Discord.Intents.FLAGS.GUILD_MESSAGES,
+    Discord.Intents.FLAGS.MESSAGE_CONTENT,
+    Discord.Intents.FLAGS.GUILD_MEMBERS,
+    //Discord.GatewayIntentBits.MessageContent,
+    //Discord.GatewayIntentBits.GuildMembers,
    ]
 })
 
