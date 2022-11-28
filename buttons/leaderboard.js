@@ -75,14 +75,8 @@ module.exports = {
         let results = ''
         if (category == "all") {
             results = await getTopTotalPrestige()
-        } else if (category == "kP") {
-            results = await getTopPrestigeType('kP')
-        } else if (category == "sP") {
-            results = await getTopPrestigeType('sP')
-        } else if (category == "lP") {
-            results = await getTopPrestigeType('lP')
-        } else if (category == "hP") {
-            results = await getTopPrestigeType('hP')
+        } else {
+            results = await getTopPrestigeType(category)
         }
 
 
