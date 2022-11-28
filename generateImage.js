@@ -1,6 +1,5 @@
 const Canvas = require("canvas")
 const Discord = require("discord.js")
-const background = "https://i.imgur.com/zvWTUVu.jpg"
 
 const dim = {
     height: 675,
@@ -15,7 +14,12 @@ const av = {
 }
 
 const generateImage = async (member) => {
-    console.log(member)
+    //const avatarFetch = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=11752468&size=48x48&format=Jpeg&isCircular=true`)
+    let background = "https://i.imgur.com/zvWTUVu.jpg"//await avatarFetch.json()//"https://i.imgur.com/zvWTUVu.jpg"
+    //console.log(background)
+   // background = background.data[0].imageUrl
+    //console.log(background)
+   // console.log(member)
     let username = member.username//member.user.username
     let discrim = member.discriminator//member.user.discriminator
     let avatarURL = member/*.user*/.displayAvatarURL({extension: "png", dynamic: false, size: av.size})
