@@ -1,4 +1,5 @@
 const { MessageEmbed } = require('discord.js')
+const noblox = require('noblox.js')
 
 const firebase = require('firebase/app');
 const fieldValue = require('firebase-admin').firestore.FieldValue;
@@ -37,6 +38,7 @@ const getRobloxDataFromRobloxName = async (name) => {
 const getRobloxUserFromMember = async (member) => {
 
     const memberTextIsANumber = Number(member)
+    let robloxId, robloxName;
 
     //Assuming we are awarding prestige to someone based on Username:
     if (String(memberTextIsANumber) === "NaN") {
@@ -59,7 +61,7 @@ const getRobloxUserFromMember = async (member) => {
 
         //Award prestige based on their discord handle:            
     } else {
-        discordUserId = member
+        const discordUserId = member
         robloxData = await getRobloxDataFromDiscordUserId(discordUserId)
         if (!robloxData) {
             let msg = `No roblox data exists for ${member}`
@@ -75,7 +77,7 @@ const getRobloxUserFromMember = async (member) => {
         }
     }
 
-    return robloxId, robloxName
+    return { robloxId, robloxName }
 }
 
 const createDatabaseProfile = async (robloxId) => {
@@ -151,20 +153,25 @@ const run = async (client, interaction) => {
         if (!reason) return interaction.reply("Invalid reason")
 
         try {
-            console.log(`AWARDING PRESTIGE TO ${member}`)
 
-            const { robloxId, robloxName } = getRobloxUserFromMember(member)
+            const { robloxId, robloxName } = await getRobloxUserFromMember(member)
+            console.log(`AWARDING PRESTIGE TO ${robloxName}`)
             givePretige(robloxId, prestige)
+
+            const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
+            const avatarUrl = avatarData[0].imageUrl
 
             const embedReply = new MessageEmbed()
                 .setColor(0x0099FF)
                 .setTitle(robloxName)
                 .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
+                .setThumbnail(avatarUrl)
                 .setAuthor({
                     name: "Prestige Database System",
-                    iconURL: "https://imgur.com/a/pgeEL1W"
+                    iconURL: "https://i.imgur.com/y4Gpo0V.png"
                 })
                 .setDescription(`${robloxName} has been given ${sP} sP, ${kP} kP, ${hP} hP, ${lP} lP for ${reason}`)
+                .setTimestamp(Date.now())
             return interaction.reply({ embeds: [embedReply] })
         }
         catch (err) {
