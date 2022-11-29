@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js')
+const { MessageEmbed, ButtonInteraction } = require('discord.js')
 const { db } = require('../lib/firebase')
 const noblox = require('noblox.js')
 
@@ -97,13 +97,19 @@ module.exports = {
             })
             .setDescription(results)
             .setTimestamp(Date.now())
-
-
+        
+        interaction.message.edit({ embeds: [embedReply] })
+        interaction.deferReply();
+        interaction.deleteReply();
+        /*  
         if (interaction.replied) {
+           // console.log("REPLIED")
+           
             return interaction.editReply({ embeds: [embedReply] })
         } else {
+          //  console.log("NOT REPLIED?")
             return interaction.reply({ embeds: [embedReply] })
         }
-
+        */
     }
 }

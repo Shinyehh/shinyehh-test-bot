@@ -18,6 +18,8 @@ module.exports = {
                 const member = await interaction.guild.members.fetch(interaction.member.id)
 
                 //member has the role -> remove role
+                console.log(interaction)
+
                 if (member.roles.cache.has(role.id)){
                     await member.roles.remove(role.id)
                     return interaction.reply({
