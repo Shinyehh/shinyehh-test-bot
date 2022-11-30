@@ -67,60 +67,67 @@ const run = async (client, interaction) => {
     let reason = interaction.options.getString("reason")
 
     console.log(members)
-    let membersText = String(members.replace(/[,@<!]/g, ""))
+    let membersText = String(members.replace(/[,@<>!]/g, ""))
     //memberText = memberText.replace(/\s\s+/g, ' ');
     let memberArray = membersText.split(" ")
+    interaction.deferReply();
 
     let embedsSent = []
+    if (!reason) return interaction.reply("Invalid reason")
 
     for (const member of memberArray) {
 
         if (!member) return interaction.reply("Invalid discord user id")
-        if (!reason) return interaction.reply("Invalid reason")
 
         try {
 
             const { robloxId, robloxName } = await getRobloxUserFromMember(member)
-            console.log(`AWARDING PRESTIGE TO ${robloxName}`)
-            givePretige(robloxId, robloxName, prestige)
-
-            const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
-            const avatarUrl = avatarData[0].imageUrl
-
-            const embedReply = new MessageEmbed()
-                .setColor(0x0099FF)
-                .setTitle(robloxName)
-                .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
-                .setThumbnail(avatarUrl)
-                .setAuthor({
-                    name: "Prestige Database System",
-                    iconURL: "https://i.imgur.com/y4Gpo0V.png"
-                })
-                .setDescription(`${robloxName} has been given ${sP} sP, ${kP} kP, ${hP} hP, ${lP} lP for ${reason}`)
-                .setTimestamp(Date.now())
-
-            embedsSent.push(embedReply)
-            let resp
-            
-            if (interaction.replied) {
-               // resp = await interaction.editReply({ embeds: [embedReply], fetchReply: true })
-                resp = await interaction.editReply({ embeds: embedsSent, fetchReply: true })
-            } else {
-              //  resp = await interaction.reply({ embeds: [embedReply], fetchReply: true })
-              resp = await interaction.reply({ embeds: embedsSent, fetchReply: true })
+                if (robloxId && robloxName) {
+                    console.log(`AWARDING PRESTIGE TO ${robloxName}`)
+                    givePretige(robloxId, robloxName, prestige)
+        
+                    const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
+                    const avatarUrl = avatarData[0].imageUrl
+        
+                    const embedReply = new MessageEmbed()
+                        .setColor(0x0099FF)
+                        .setTitle(robloxName)
+                        .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
+                        .setThumbnail(avatarUrl)
+                        .setAuthor({
+                            name: "Prestige Database System",
+                            iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                        })
+                        .setDescription(`${robloxName} has been given ${sP} sP, ${kP} kP, ${hP} hP, ${lP} lP for ${reason}`)
+                        .setTimestamp(Date.now())
+        
+                    embedsSent.push(embedReply)
+                    
+                    /*
+                    let resp
+                    if (interaction.replied) {
+                    // resp = await interaction.editReply({ embeds: [embedReply], fetchReply: true })
+                        resp = await interaction.editReply({ embeds: embedsSent, fetchReply: true })
+                    } else {
+                    //  resp = await interaction.reply({ embeds: [embedReply], fetchReply: true })
+                    resp = await interaction.reply({ embeds: embedsSent, fetchReply: true })
+                    }
+                    //console.log(resp)
+                    */
+                await interaction.channel.send({ embeds: [embedReply] })
+                    //return interaction.reply({ embeds: [embedReply] })
+                }
             }
-            //console.log(resp)
-
-            //return interaction.reply({ embeds: [embedReply] })
-        }
+  
         catch (err) {
             if (err) {
                 console.error(err)
-                return interaction.reply(`Failed awarding prestige to ${member}`)//Failed to award prestige to ${robloxName || 'nil'}`)
+                //return interaction.reply(`Failed awarding prestige to ${member}`)//Failed to award prestige to ${robloxName || 'nil'}`)
+                await interaction.channel.send(`Failed awarding prestige to ${member}`)
             }
         }
     }
-
+    interaction.deleteReply();
 }
 
 module.exports = {
