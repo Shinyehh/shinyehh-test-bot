@@ -54,6 +54,8 @@ const givePretige = async (robloxId, robloxName, prestige) => {
             'lP': currentlP + lP,
         });
     }
+
+    return doc.data()
 }
 
 const run = async (client, interaction) => {
@@ -82,47 +84,77 @@ const run = async (client, interaction) => {
         try {
 
             const { robloxId, robloxName } = await getRobloxUserFromMember(member)
-                if (robloxId && robloxName) {
-                    console.log(`AWARDING PRESTIGE TO ${robloxName}`)
-                    givePretige(robloxId, robloxName, prestige)
-        
-                    const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
-                    const avatarUrl = avatarData[0].imageUrl
-        
-                    const embedReply = new MessageEmbed()
-                        .setColor(0x0099FF)
-                        .setTitle(robloxName)
-                        .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
-                        .setThumbnail(avatarUrl)
-                        .setAuthor({
-                            name: "Prestige Database System",
-                            iconURL: "https://i.imgur.com/y4Gpo0V.png"
-                        })
-                        .setDescription(`${robloxName} has been given ${sP} sP, ${kP} kP, ${hP} hP, ${lP} lP for ${reason}`)
-                        .setTimestamp(Date.now())
-        
-                    embedsSent.push(embedReply)
-                    
-                    /*
-                    let resp
-                    if (interaction.replied) {
-                    // resp = await interaction.editReply({ embeds: [embedReply], fetchReply: true })
-                        resp = await interaction.editReply({ embeds: embedsSent, fetchReply: true })
-                    } else {
-                    //  resp = await interaction.reply({ embeds: [embedReply], fetchReply: true })
-                    resp = await interaction.reply({ embeds: embedsSent, fetchReply: true })
+            if (robloxId && robloxName) {
+                console.log(`AWARDING PRESTIGE TO ${robloxName}`)
+                const newPrestige = await givePretige(robloxId, robloxName, prestige)
+                console.log(newPrestige)
+
+                const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
+                const avatarUrl = avatarData[0].imageUrl
+
+                let description = ``
+                // Add given prestige to description
+                given = Object.keys(prestige).map((type) => {
+                    if (prestige[type] !== 0) {
+                        description += `${newPrestige[type] - prestige[type]}${type} -> ${newPrestige[type]}${type} **(+${prestige[type]}${type})** \n`
                     }
-                    //console.log(resp)
-                    */
-                await interaction.channel.send({ embeds: [embedReply] })
-                    //return interaction.reply({ embeds: [embedReply] })
+                })
+
+                // Add next rank information
+                description += `\nNext Rank: **Soldier (10sP)**\n`
+
+                // Add current pretige
+                description += `\n**sP᲼᲼᲼᲼᲼᲼᲼kP᲼᲼᲼᲼᲼᲼᲼hP᲼᲼᲼᲼᲼᲼᲼lP**\n`
+                description += `${newPrestige.sP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.kP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.hP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.lP}`
+
+                const embedReply = new MessageEmbed()
+                    .setColor("BLUE")
+                    .setAuthor({
+                        name: "Prestige Infocenter",
+                        iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                    })
+
+                    .setTitle(`Conscript ${robloxName}`)
+                    .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
+                    .setThumbnail(avatarUrl)
+
+                    // Given prestige
+                    .setDescription(`${description}`)
+
+                    // Current prestige
+                    // .addFields(
+                    //     { name: 'sP', value: `${newPrestige.sP}`, inline: true },
+                    //     { name: 'kP', value: `${newPrestige.kP}`, inline: true },
+                    //     { name: 'hP', value: `${newPrestige.hP}`, inline: true },
+                    //     { name: 'lP', value: `${newPrestige.lP}`, inline: true },
+                    // )
+
+                    .setImage('https://i.imgur.com/910F0td.png')
+
+                    .setTimestamp(Date.now())
+
+                embedsSent.push(embedReply)
+
+                /*
+                let resp
+                if (interaction.replied) {
+                // resp = await interaction.editReply({ embeds: [embedReply], fetchReply: true })
+                    resp = await interaction.editReply({ embeds: embedsSent, fetchReply: true })
+                } else {
+                //  resp = await interaction.reply({ embeds: [embedReply], fetchReply: true })
+                resp = await interaction.reply({ embeds: embedsSent, fetchReply: true })
                 }
+                //console.log(resp)
+                */
+                await interaction.channel.send({ embeds: [embedReply] })
+                //return interaction.reply({ embeds: [embedReply] })
             }
-  
+        }
+
         catch (err) {
             if (err) {
                 console.error(err)
-                //return interaction.reply(`Failed awarding prestige to ${member}`)//Failed to award prestige to ${robloxName || 'nil'}`)
+                //return interaction.reply(`Failed awarding prestige to ${ member }`)//Failed to award prestige to ${robloxName || 'nil'}`)
                 await interaction.channel.send(`Failed awarding prestige to ${member}`)
             }
         }
