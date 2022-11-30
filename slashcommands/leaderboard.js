@@ -1,13 +1,9 @@
 const { MessageActionRow, MessageButton, MessageEmbed } = require("discord.js")
-const noblox = require('noblox.js')
-
-const { getRobloxUserFromMember } = require('../lib/functions')
-const { db } = require('../lib/firebase')
 
 const run = async (client, interaction) => {
     console.log("Running leaderboard command")
 
-     interaction.reply({//interaction.channel.send({
+    interaction.reply({//interaction.channel.send({
         embeds: [
             new MessageEmbed().setTitle("Prestige Leaderboards").setDescription("Select a leaderboard to view below!").setColor("BLUE")
         ],
