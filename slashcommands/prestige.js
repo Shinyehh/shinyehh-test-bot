@@ -101,7 +101,11 @@ const run = async (client, interaction) => {
                 })
 
                 // Add next rank information
-                description += `\nNext Rank: **Soldier (10sP)**`
+                description += `\nNext Rank: **Soldier (10sP)**\n`
+
+                // Add current pretige
+                description += `\n**sP᲼᲼᲼᲼᲼᲼᲼kP᲼᲼᲼᲼᲼᲼᲼hP᲼᲼᲼᲼᲼᲼᲼lP**\n`
+                description += `${newPrestige.sP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.kP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.hP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.lP}`
 
                 const embedReply = new MessageEmbed()
                     .setColor("BLUE")
@@ -118,12 +122,14 @@ const run = async (client, interaction) => {
                     .setDescription(`${description}`)
 
                     // Current prestige
-                    .addFields(
-                        { name: 'sP', value: `${newPrestige.sP}`, inline: true },
-                        { name: 'kP', value: `${newPrestige.kP}`, inline: true },
-                        { name: 'hP', value: `${newPrestige.hP}`, inline: true },
-                        { name: 'lP', value: `${newPrestige.lP}`, inline: true },
-                    )
+                    // .addFields(
+                    //     { name: 'sP', value: `${newPrestige.sP}`, inline: true },
+                    //     { name: 'kP', value: `${newPrestige.kP}`, inline: true },
+                    //     { name: 'hP', value: `${newPrestige.hP}`, inline: true },
+                    //     { name: 'lP', value: `${newPrestige.lP}`, inline: true },
+                    // )
+
+                    .setImage('https://i.imgur.com/910F0td.png')
 
                     .setTimestamp(Date.now())
 
