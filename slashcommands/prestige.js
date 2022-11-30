@@ -13,18 +13,18 @@ const createDatabaseProfile = async (robloxId) => {
     });
 }
 
-const givePretige = async (robloxId, robloxName, prestige) => {
+const givePrestige = async (robloxId, robloxName, prestige) => {
     ({ sP, kP, hP, lP } = prestige)
 
     let prestigeRef = db.collection('PrestigeDatabase').doc(robloxId)
-    let doc = await prestigeRef.get();
+    let doc = await prestigeRef.get()
 
     if (!doc.exists) {
         console.log(`Creating database profile for ${robloxName}`);
         createDatabaseProfile(robloxId)
 
         prestigeRef = db.collection('PrestigeDatabase').doc(robloxId)
-        doc = await prestigeRef.get();
+        doc = await prestigeRef.get()
     }
 
     if (!doc.exists) {
@@ -95,7 +95,7 @@ const run = async (client, interaction) => {
             console.log("after")
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
-                const newPrestige = await givePretige(robloxId, robloxName, prestige)
+                const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
                 console.log(newPrestige)
 
                 const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
