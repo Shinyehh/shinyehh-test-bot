@@ -70,7 +70,7 @@ const run = async (client, interaction) => {
 
     console.log(members)
     let membersText = String(members.replace(/[,@<>!]/g, ""))
-    //memberText = memberText.replace(/\s\s+/g, ' ');
+    membersText = membersText.replace(/\s\s+/g, ' ');
     let memberArray = membersText.split(" ")
     interaction.deferReply();
 
@@ -78,14 +78,21 @@ const run = async (client, interaction) => {
     if (!reason) return interaction.reply("Invalid reason")
 
     const robloxData = await getRobloxUsersFromMembers(memberArray)
+    if (!robloxData) return interaction.repy("Could not retrieve roblox data")
 
-
+    console.log(robloxData)
     for (const player of robloxData) {
 
-        if (!member) return interaction.reply("Invalid discord user id")
+        if (!player) {
+            interaction.channel.send("Invalid player")
+        } //return interaction.reply("Invalid discord user id")
 
         try {
-
+            let robloxId = player.id
+            let robloxName = player.name
+            console.log("before")
+            console.log(player)
+            console.log("after")
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePretige(robloxId, robloxName, prestige)
@@ -140,7 +147,7 @@ const run = async (client, interaction) => {
         catch (err) {
             if (err) {
                 console.error(err)
-                await interaction.channel.send(`Failed awarding prestige to ${member}`)
+                await interaction.channel.send(`Failed awarding prestige to ${player}`)
             }
         }
     }
