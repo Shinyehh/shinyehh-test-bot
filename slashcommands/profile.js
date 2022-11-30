@@ -1,4 +1,4 @@
-const { getRobloxUserFromMember } = require('../lib/functions')
+const { getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
@@ -7,7 +7,8 @@ const noblox = require('noblox.js')
 const run = async (client, interaction) => {
     console.log(interaction)
 
-    const { robloxId, robloxName } = await getRobloxUserFromMember(interaction.user.id)
+    const data = await getRobloxUsersFromMembers([interaction.user.id])
+    const { robloxId, robloxName } = data[0]
 
     const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
     const avatarUrl = avatarData[0].imageUrl

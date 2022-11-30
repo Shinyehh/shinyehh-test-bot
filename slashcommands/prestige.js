@@ -1,7 +1,7 @@
 const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
 
-const { getRobloxUserFromMember } = require('../lib/functions')
+const { getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 
 const createDatabaseProfile = async (robloxId) => {
@@ -77,13 +77,15 @@ const run = async (client, interaction) => {
     let embedsSent = []
     if (!reason) return interaction.reply("Invalid reason")
 
-    for (const member of memberArray) {
+    const robloxData = await getRobloxUsersFromMembers(memberArray)
+
+
+    for (const player of robloxData) {
 
         if (!member) return interaction.reply("Invalid discord user id")
 
         try {
 
-            const { robloxId, robloxName } = await getRobloxUserFromMember(member)
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePretige(robloxId, robloxName, prestige)
@@ -103,10 +105,6 @@ const run = async (client, interaction) => {
                 // Add next rank information
                 description += `\nNext Rank: **Soldier (10sP)**\n`
 
-                // Add current pretige
-                description += `\n**sP᲼᲼᲼᲼᲼᲼᲼kP᲼᲼᲼᲼᲼᲼᲼hP᲼᲼᲼᲼᲼᲼᲼lP**\n`
-                description += `${newPrestige.sP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.kP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.hP}᲼᲼᲼᲼᲼᲼᲼${newPrestige.lP}`
-
                 const embedReply = new MessageEmbed()
                     .setColor("BLUE")
                     .setAuthor({
@@ -122,12 +120,12 @@ const run = async (client, interaction) => {
                     .setDescription(`${description}`)
 
                     // Current prestige
-                    // .addFields(
-                    //     { name: 'sP', value: `${newPrestige.sP}`, inline: true },
-                    //     { name: 'kP', value: `${newPrestige.kP}`, inline: true },
-                    //     { name: 'hP', value: `${newPrestige.hP}`, inline: true },
-                    //     { name: 'lP', value: `${newPrestige.lP}`, inline: true },
-                    // )
+                    .addFields(
+                        { name: 'sP', value: `${newPrestige.sP}`, inline: true },
+                        { name: 'kP', value: `${newPrestige.kP}`, inline: true },
+                        { name: 'hP', value: `${newPrestige.hP}`, inline: true },
+                        { name: 'lP', value: `${newPrestige.lP}`, inline: true },
+                    )
 
                     .setImage('https://i.imgur.com/910F0td.png')
 
@@ -135,26 +133,13 @@ const run = async (client, interaction) => {
 
                 embedsSent.push(embedReply)
 
-                /*
-                let resp
-                if (interaction.replied) {
-                // resp = await interaction.editReply({ embeds: [embedReply], fetchReply: true })
-                    resp = await interaction.editReply({ embeds: embedsSent, fetchReply: true })
-                } else {
-                //  resp = await interaction.reply({ embeds: [embedReply], fetchReply: true })
-                resp = await interaction.reply({ embeds: embedsSent, fetchReply: true })
-                }
-                //console.log(resp)
-                */
                 await interaction.channel.send({ embeds: [embedReply] })
-                //return interaction.reply({ embeds: [embedReply] })
             }
         }
 
         catch (err) {
             if (err) {
                 console.error(err)
-                //return interaction.reply(`Failed awarding prestige to ${ member }`)//Failed to award prestige to ${robloxName || 'nil'}`)
                 await interaction.channel.send(`Failed awarding prestige to ${member}`)
             }
         }

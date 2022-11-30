@@ -16,7 +16,6 @@
     "dotenv": "^16.0.3",
     "firebase": "^9.14.0",
     "firebase-admin": "^11.3.0",
-    "noblox": "^4.8.5",
     "noblox.js": "^4.13.1"
   }
 }
