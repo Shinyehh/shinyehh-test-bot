@@ -1,15 +1,17 @@
 const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
 
-const { getRobloxUsersFromMembers } = require('../lib/functions')
+const { getRankNameInGUF, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 
-const createDatabaseProfile = async (robloxId) => {
+const createDatabaseProfile = async (robloxId, prestige) => {
+    ({ sP, kP, hP, lP } = prestige)
+
     db.collection('PrestigeDatabase').doc(robloxId).set({
-        'sP': 0,
-        'kP': 0,
-        'hP': 0,
-        'lP': 0,
+        'sP': sP || 0,
+        'kP': kP || 0,
+        'hP': hP || 0,
+        'lP': lP || 0,
     });
 }
 
@@ -21,44 +23,60 @@ const givePrestige = async (robloxId, robloxName, prestige) => {
 
     if (!doc.exists) {
         console.log(`Creating database profile for ${robloxName}`);
-        createDatabaseProfile(robloxId)
+        createDatabaseProfile(robloxId, prestige)
 
-        prestigeRef = db.collection('PrestigeDatabase').doc(robloxId)
-        doc = await prestigeRef.get()
-    }
+        return {
+            ["sP"] : sP || 0,
+            ["kP"] : kP || 0,
+            ["hP"] : hP || 0,
+            ["lP"] : lP || 0
+        }
 
-    if (!doc.exists) {
-        console.log(`Error giving prestige to ${robloxId}`)
-        return
-    }
-    const data = doc.data()
-    console.log('Document data:', data);
+     } else {
+        const data = doc.data()
+    
+        if (Object.keys(data).length === 0) {
+            db.collection('PrestigeDatabase').doc(robloxId).set({
+                'sP': sP || 0,
+                'kP': kP || 0,
+                'hP': hP || 0,
+                'lP': lP || 0,
+            });
 
-    if (Object.keys(data).length === 0) {
-        db.collection('PrestigeDatabase').doc(robloxId).set({
-            'sP': sP || 0,
-            'kP': kP || 0,
-            'hP': hP || 0,
-            'lP': lP || 0,
-        });
-    } else {
-        const currentsP = data.sP || 0
-        const currentkP = data.kP || 0
-        const currenthP = data.hP || 0
-        const currentlP = data.lP || 0
+            return {
+                ["sP"] : sP || 0,
+                ["kP"] : kP || 0,
+                ["hP"] : hP || 0,
+                ["lP"] : lP || 0,
+             }  
+        } else {
+            const currentsP = data.sP || 0
+            const currentkP = data.kP || 0
+            const currenthP = data.hP || 0
+            const currentlP = data.lP || 0
+    
+            db.collection('PrestigeDatabase').doc(robloxId).set({
+                'sP': currentsP + sP,
+                'kP': currentkP + kP,
+                'hP': currenthP + hP,
+                'lP': currentlP + lP,
+            });
 
-        db.collection('PrestigeDatabase').doc(robloxId).set({
-            'sP': currentsP + sP,
-            'kP': currentkP + kP,
-            'hP': currenthP + hP,
-            'lP': currentlP + lP,
-        });
-    }
-
-    return doc.data()
+            return {
+                ["sP"] : currentsP + sP,
+                ["kP"] : currentkP + kP,
+                ["hP"] : currenthP + hP,
+                ["lP"] : currentlP + lP
+             }  
+        }
+ 
+    }   //doc.data()
 }
 
+
+
 const run = async (client, interaction) => {
+    interaction.reply("Working on it...")
     let members = interaction.options.getString("user")
     let prestige = {
         sP: interaction.options.getNumber("sp") || 0,
@@ -68,19 +86,19 @@ const run = async (client, interaction) => {
     }
     let reason = interaction.options.getString("reason")
 
-    console.log(members)
     let membersText = String(members.replace(/[,@<>!]/g, ""))
     membersText = membersText.replace(/\s\s+/g, ' ');
     let memberArray = membersText.split(" ")
-    interaction.deferReply();
-
+    //interaction.deferReply();
+    
     let embedsSent = []
-    if (!reason) return interaction.reply("Invalid reason")
+    if (!reason) return interaction.followUp("Invalid reason")
 
     const robloxData = await getRobloxUsersFromMembers(memberArray)
-    if (!robloxData) return interaction.repy("Could not retrieve roblox data")
-
     console.log(robloxData)
+    if (!robloxData) return interaction.followUp("Could not retrieve roblox data")
+
+    //console.log(robloxData)
     for (const player of robloxData) {
 
         if (!player) {
@@ -88,18 +106,17 @@ const run = async (client, interaction) => {
         } //return interaction.reply("Invalid discord user id")
 
         try {
-            let robloxId = player.id
-            let robloxName = player.name
-            console.log("before")
-            console.log(player)
-            console.log("after")
+            let robloxId = player.id || player.robloxId
+            let robloxName = player.name || player.cachedUsername
+            //console.log(player)
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
-                console.log(newPrestige)
 
                 const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
                 const avatarUrl = avatarData[0].imageUrl
+
+                const rankName = await getRankNameInGUF(robloxId)
 
                 let description = ``
                 // Add given prestige to description
@@ -119,7 +136,7 @@ const run = async (client, interaction) => {
                         iconURL: "https://i.imgur.com/y4Gpo0V.png"
                     })
 
-                    .setTitle(`Conscript ${robloxName}`)
+                    .setTitle(`${rankName} ${robloxName}`)
                     .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
                     .setThumbnail(avatarUrl)
 
@@ -141,6 +158,23 @@ const run = async (client, interaction) => {
                 embedsSent.push(embedReply)
 
                 await interaction.channel.send({ embeds: [embedReply] })
+            } else {
+                let requestedName = player.requestedUsername
+                let found = player.found
+                if (requestedName && found == "Not Found") {
+                    await interaction.channel.send({ embeds: [
+                        new MessageEmbed()
+                        .setColor("RED")
+                        .setAuthor({
+                            name: "Prestige Infocenter",
+                            iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                        })
+                        .setTitle(`Player Error`)
+                        .setDescription(`Could not find roblox data for ${requestedName}`)
+                        .setImage('https://i.imgur.com/910F0td.png')
+                        .setTimestamp(Date.now())
+                    ]})  
+                }
             }
         }
 
@@ -151,7 +185,42 @@ const run = async (client, interaction) => {
             }
         }
     }
-    interaction.deleteReply();
+    //if (!interaction.replied) {
+        const authorRobloxData = await getRobloxUsersFromMembers([interaction.user.id])
+        if (authorRobloxData && authorRobloxData[0]) {
+            let robloxId = authorRobloxData[0].robloxId
+            let robloxName = authorRobloxData[0].cachedUsername
+
+            if (robloxId && robloxName) {
+                const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
+                const avatarUrl = avatarData[0].imageUrl
+                
+                const rankName = await getRankNameInGUF(robloxId)
+ 
+                await interaction.channel.send({ embeds: [
+                    new MessageEmbed()
+                    .setColor("GREEN")
+                    .setAuthor({
+                        name: "Prestige Infocenter",
+                        iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                    })
+        
+                    .setTitle(`${rankName} ${robloxName}`)
+                    .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
+                    .setThumbnail(avatarUrl)
+        
+                    // Given prestige
+                    .setDescription(`Successfully awarded prestige (see above)`)
+        
+                    .setImage('https://i.imgur.com/910F0td.png')
+        
+                    .setTimestamp(Date.now())
+                ]})
+            }
+        }
+    //}
+    return await interaction.followUp("Awarded prestige!")
+    
 }
 
 module.exports = {
