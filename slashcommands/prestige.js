@@ -2,13 +2,19 @@ const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
 const { getRankNameInGUF, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
-const { async } = require('@firebase/util')
 
 const prestigeLimits = {
-    ["sP"] : 10,
-    ["kP"] : 5,
-    ["hP"] : 6,
-    ["lP"] : 5
+    sP: 10,
+    kP: 5,
+    hP: 6,
+    lP: 5
+}
+
+const prestigeNames = {
+    sP: 'Strength',
+    kP: 'Knowledge',
+    hP: 'Honor',
+    lP: 'Leadership'
 }
 
 function checkIfCanGiveLeadershipPrestige(interaction) {
@@ -16,17 +22,17 @@ function checkIfCanGiveLeadershipPrestige(interaction) {
 
     // console.log(member.id)
     if (member.id !== process.env.OWNER) {
-         const guild = member.guild
-         if (!guild) return false
- 
-         const allowedRole = guild.roles.cache.get(module.exports.highcomPerm)
-         if (!allowedRole) return false
-         const rolePosition = allowedRole.position
-         const highestUserRolePosition = member.roles.highest.position
- 
-         if (highestUserRolePosition < rolePosition) return false
-     }
-     return true
+        const guild = member.guild
+        if (!guild) return false
+
+        const allowedRole = guild.roles.cache.get(module.exports.highcomPerm)
+        if (!allowedRole) return false
+        const rolePosition = allowedRole.position
+        const highestUserRolePosition = member.roles.highest.position
+
+        if (highestUserRolePosition < rolePosition) return false
+    }
+    return true
 }
 
 const createDatabaseProfile = async (robloxId, prestige) => {
@@ -41,7 +47,7 @@ const createDatabaseProfile = async (robloxId, prestige) => {
 }
 
 const givePrestige = async (robloxId, robloxName, prestige) => {
-    
+
     ({ sP, kP, hP, lP } = prestige)
     const basePrestige = {
         'sP': sP || 0,
@@ -237,7 +243,7 @@ const run = async (client, interaction) => {
     let reason = interaction.options.getString("reason")
 
     //Check if any prestige is actually being given:
-    if (prestige.sP == 0 && prestige.kP == 0 && prestige.hP == 0 && prestige.lP == 0){
+    if (prestige.sP == 0 && prestige.kP == 0 && prestige.hP == 0 && prestige.lP == 0) {
         sendMiscErrorEmbed(interaction, "Must specify at least one type of prestige and an amount to award")
         return await interaction.followUp("Error awarding prestige")
     }
@@ -246,27 +252,24 @@ const run = async (client, interaction) => {
 
         //Check if player is allowed to give leadership prestige (must be highcom):
         let canGiveLeadershipPrestige = checkIfCanGiveLeadershipPrestige(interaction)
-        if (!canGiveLeadershipPrestige){
+        if (!canGiveLeadershipPrestige) {
             sendMiscErrorEmbed(interaction, "You are not allowed to award Leadership Prestige")
             return await interaction.followUp("Error awarding prestige")
         }
 
         //Check if giving or taking away too much prestige
         let givingTooMuchPrestigeErrorMessage
-        if (Math.abs(prestige.sP) > prestigeLimits.sP) {
-            givingTooMuchPrestigeErrorMessage = `Awarding too much Strength Prestige (Limit: ${prestigeLimits.sP})`
-        } else if (Math.abs(prestige.kP) > prestigeLimits.kP) {
-            givingTooMuchPrestigeErrorMessage = `Awarding too much Knowledge Prestige (Limit: ${prestigeLimits.kP})`
-        } else if (Math.abs(prestige.hP) > prestigeLimits.hP) {
-            givingTooMuchPrestigeErrorMessage = `Awarding too much Honor Prestige (Limit: ${prestigeLimits.hP})`
-        } else if (Math.abs(prestige.lP) > prestigeLimits.lP) {
-            givingTooMuchPrestigeErrorMessage = `Awarding too much Leadership Prestige (Limit: ${prestigeLimits.lP})`
-        }
+        Object.keys(prestigeLimits).forEach(type => {
+            if (Math.abs(prestige[type]) > prestigeLimits[type]) {
+                givingTooMuchPrestigeErrorMessage = `Awarding too much ${prestigeNames[type]} Prestige (Limit: ${prestigeLimits[type]})`
+            }
+        })
+
         if (givingTooMuchPrestigeErrorMessage) {
             sendMiscErrorEmbed(interaction, givingTooMuchPrestigeErrorMessage)
             return await interaction.followUp("Error awarding prestige")
         }
-  
+
     }
 
     let membersText = String(members.replace(/[,@<>!]/g, ""))
