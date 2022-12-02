@@ -4,6 +4,13 @@ const { getRankNameInGUF, getRobloxUsersFromMembers } = require('../lib/function
 const { db } = require('../lib/firebase')
 const { async } = require('@firebase/util')
 
+const prestigeLimits = {
+    ["sP"] : 10,
+    ["kP"] : 5,
+    ["hP"] : 6,
+    ["lP"] : 5
+}
+
 const createDatabaseProfile = async (robloxId, prestige) => {
     ({ sP, kP, hP, lP } = prestige)
 
@@ -13,13 +20,6 @@ const createDatabaseProfile = async (robloxId, prestige) => {
         'hP': hP || 0,
         'lP': lP || 0,
     });
-}
-
-const prestigeLimits = {
-    ["sP"] : 10,
-    ["kP"] : 5,
-    ["hP"] : 6,
-    ["lP"] : 5
 }
 
 const givePrestige = async (robloxId, robloxName, prestige) => {
@@ -289,6 +289,11 @@ module.exports = {
     name: "prestige",
     description: "Add prestige to a member",
     //perm: "KICK_MEMBERS",
+
+    highcomPerm: process.env.ADMIRAL_ROLE,
+    officerPerm: process.env.OFFICER_ROLE,
+
+    rolePermission: process.env.OFFICER_ROLE,
 
     options: [
         {
