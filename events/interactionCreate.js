@@ -28,8 +28,10 @@ const handleSlashCommand = (bot, interaction) => {
     //console.log(slashcmd)
     if (!slashcmd) return interaction.reply("Invalid slash command")
 
-    if (slashcmd.perms && !interaction.member.permission.has(slashcmd.perm))
+    if (slashcmd.perm && !interaction.member.permission.has(slashcmd.perm))
         return interaction.reply("You do not have permission for this command")
 
-    slashcmd.run(client, interaction)
+    
+    
+        slashcmd.run(client, interaction)
 }
