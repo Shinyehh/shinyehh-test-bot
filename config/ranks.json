@@ -1,0 +1,96 @@
+{
+    "Conscript": {
+        "id": "1",
+        "total": 0,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 0,
+        "secondaryPrestige": [],
+        "secondaryPrestigeValue": 0
+    },
+    "Soldier": {
+        "id": "2",
+        "total": 0,
+        "badgeId": 123456,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 0,
+        "secondaryPrestige": [
+            "sP",
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 5
+    },
+    "Scout": {
+        "id": "3",
+        "total": 20,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 15,
+        "secondaryPrestige": [
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 5
+    },
+    "Guard": {
+        "id": "4",
+        "total": 40,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 30,
+        "secondaryPrestige": [
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 10
+    },
+    "Marksman": {
+        "id": 5,
+        "total": 80,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 60,
+        "secondaryPrestige": [
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 20
+    },
+    "Watchman": {
+        "total": 160,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 120,
+        "secondaryPrestige": [
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 40
+    },
+    "Specialist": {
+        "total": 260,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 195,
+        "secondaryPrestige": [
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 65
+    },
+    "Sentinel": {
+        "total": 400,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 300,
+        "secondaryPrestige": [
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 100
+    },
+    "Vanguard": {
+        "total": 540,
+        "mainPrestige": "sP",
+        "mainPrestigeValue": 405,
+        "secondaryPrestige": [
+            "kP",
+            "hP"
+        ],
+        "secondaryPrestigeValue": 135
+    }
+}

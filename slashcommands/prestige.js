@@ -1,7 +1,8 @@
 const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
-const { getRankNameInGUF, getRobloxUsersFromMembers } = require('../lib/functions')
+const { getRankNameInGUF, getRankNameFromID, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
+const rankData = require('../config/ranks.json')
 
 const prestigeLimits = {
     sP: 10,
@@ -92,7 +93,6 @@ const givePrestige = async (robloxId, robloxName, prestige) => {
                 'lP': currentlP + lP
             }
         }
-
     }
 }
 
@@ -143,12 +143,10 @@ const sendCouldNotFindEmbed = async (player, interaction, message) => {
     }
 }
 
-const sendSuccessEmbed = async (robloxId, robloxName, prestige, newPrestige, interaction, embedsSent) => {
+const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPrestige, interaction, embedsSent) => {
 
     const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
     const avatarUrl = avatarData[0].imageUrl
-
-    const rankName = await getRankNameInGUF(robloxId)
 
     let description = ``
     // Add given prestige to description
@@ -231,6 +229,42 @@ const sendFinalSuccessEmbed = async (interaction) => {
     }
 }
 
+const tryPromote = async (robloxId, prestige) => {
+    const currentRankName = await getRankNameInGUF(robloxId)
+    const currentRankId = rankData[currentRankName].id
+
+    let highestRankId = currentRankId
+    let highestRankName = currentRankName
+    for (const [name, rank] of Object.entries(rankData)) {
+        const id = rank.id
+        // Check main prestige requirement met
+        if (prestige[rank.mainPrestige] < rank.mainPrestigeValue) {
+            // Main prestige requirement NOT met
+            return
+        }
+
+        let secondaryTotal = 0
+        for (const type of secondaryPrestige) {
+            secondaryTotal += prestige[type]
+        }
+        if (secondaryTotal >= secondaryPrestigeValue) {
+            // Secondary prestige NOT met
+            return
+        }
+
+        if (id > highestRankId) {
+            highestRankId = id
+            highestRankName = name
+        }
+    }
+
+    if (highestRankId !== currentRankId) {
+        await noblox.setRank(6870149, robloxId, highestRankId)
+    }
+
+    return highestRankName
+}
+
 const run = async (client, interaction) => {
     await interaction.reply("Awarding prestige...")
     let members = interaction.options.getString("user")
@@ -291,13 +325,15 @@ const run = async (client, interaction) => {
         } //return interaction.reply("Invalid discord user id")
 
         try {
-            let robloxId = player.id || player.robloxId
-            let robloxName = player.name || player.cachedUsername
+            const robloxId = player.id || player.robloxId
+            const robloxName = player.name || player.cachedUsername
 
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
-                sendSuccessEmbed(robloxId, robloxName, prestige, newPrestige, interaction, embedsSent)
+                const rankName = tryPromote(robloxId, newPrestige)
+
+                sendSuccessEmbed(robloxId, robloxName, rankName, prestige, newPrestige, interaction, embedsSent)
             } else {
                 sendCouldNotFindEmbed(player, interaction)
             }
