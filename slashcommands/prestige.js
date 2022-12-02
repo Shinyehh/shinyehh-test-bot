@@ -11,6 +11,24 @@ const prestigeLimits = {
     ["lP"] : 5
 }
 
+function checkIfCanGiveLeadershipPrestige(interaction) {
+    const member = interaction.member
+
+    // console.log(member.id)
+    if (member.id !== process.env.OWNER) {
+         const guild = member.guild
+         if (!guild) return false
+ 
+         const allowedRole = guild.roles.cache.get(module.exports.highcomPerm)
+         if (!allowedRole) return false
+         const rolePosition = allowedRole.position
+         const highestUserRolePosition = member.roles.highest.position
+ 
+         if (highestUserRolePosition < rolePosition) return false
+     }
+     return true
+}
+
 const createDatabaseProfile = async (robloxId, prestige) => {
     ({ sP, kP, hP, lP } = prestige)
 
@@ -23,7 +41,7 @@ const createDatabaseProfile = async (robloxId, prestige) => {
 }
 
 const givePrestige = async (robloxId, robloxName, prestige) => {
-
+    
     ({ sP, kP, hP, lP } = prestige)
     const basePrestige = {
         'sP': sP || 0,
@@ -224,20 +242,31 @@ const run = async (client, interaction) => {
         return await interaction.followUp("Error awarding prestige")
     }
 
-    //Check if giving or taking away too much prestige
-    let givingTooMuchPrestigeErrorMessage
-    if (Math.abs(prestige.sP) > prestigeLimits.sP) {
-        givingTooMuchPrestigeErrorMessage = `Awarding too much Strength Prestige (Limit: ${prestigeLimits.sP})`
-    } else if (Math.abs(prestige.kP) > prestigeLimits.kP) {
-        givingTooMuchPrestigeErrorMessage = `Awarding too much Knowledge Prestige (Limit: ${prestigeLimits.kP})`
-    } else if (Math.abs(prestige.hP) > prestigeLimits.hP) {
-        givingTooMuchPrestigeErrorMessage = `Awarding too much Honor Prestige (Limit: ${prestigeLimits.hP})`
-    } else if (Math.abs(prestige.lP) > prestigeLimits.lP) {
-        givingTooMuchPrestigeErrorMessage = `Awarding too much Leadership Prestige (Limit: ${prestigeLimits.lP})`
-    }
-    if (givingTooMuchPrestigeErrorMessage) {
-        sendMiscErrorEmbed(interaction, givingTooMuchPrestigeErrorMessage)
-        return await interaction.followUp("Error awarding prestige")
+    if (interaction.member.id !== process.env.OWNER) {
+
+        //Check if player is allowed to give leadership prestige (must be highcom):
+        let canGiveLeadershipPrestige = checkIfCanGiveLeadershipPrestige(interaction)
+        if (!canGiveLeadershipPrestige){
+            sendMiscErrorEmbed(interaction, "You are not allowed to award Leadership Prestige")
+            return await interaction.followUp("Error awarding prestige")
+        }
+
+        //Check if giving or taking away too much prestige
+        let givingTooMuchPrestigeErrorMessage
+        if (Math.abs(prestige.sP) > prestigeLimits.sP) {
+            givingTooMuchPrestigeErrorMessage = `Awarding too much Strength Prestige (Limit: ${prestigeLimits.sP})`
+        } else if (Math.abs(prestige.kP) > prestigeLimits.kP) {
+            givingTooMuchPrestigeErrorMessage = `Awarding too much Knowledge Prestige (Limit: ${prestigeLimits.kP})`
+        } else if (Math.abs(prestige.hP) > prestigeLimits.hP) {
+            givingTooMuchPrestigeErrorMessage = `Awarding too much Honor Prestige (Limit: ${prestigeLimits.hP})`
+        } else if (Math.abs(prestige.lP) > prestigeLimits.lP) {
+            givingTooMuchPrestigeErrorMessage = `Awarding too much Leadership Prestige (Limit: ${prestigeLimits.lP})`
+        }
+        if (givingTooMuchPrestigeErrorMessage) {
+            sendMiscErrorEmbed(interaction, givingTooMuchPrestigeErrorMessage)
+            return await interaction.followUp("Error awarding prestige")
+        }
+  
     }
 
     let membersText = String(members.replace(/[,@<>!]/g, ""))
