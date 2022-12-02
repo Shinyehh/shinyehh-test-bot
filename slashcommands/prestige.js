@@ -2,6 +2,7 @@ const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
 const { getRankNameInGUF, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
+const { async } = require('@firebase/util')
 
 const createDatabaseProfile = async (robloxId, prestige) => {
     ({ sP, kP, hP, lP } = prestige)
@@ -12,6 +13,13 @@ const createDatabaseProfile = async (robloxId, prestige) => {
         'hP': hP || 0,
         'lP': lP || 0,
     });
+}
+
+const prestigeLimits = {
+    ["sP"] : 10,
+    ["kP"] : 5,
+    ["hP"] : 6,
+    ["lP"] : 5
 }
 
 const givePrestige = async (robloxId, robloxName, prestige) => {
@@ -64,10 +72,36 @@ const givePrestige = async (robloxId, robloxName, prestige) => {
     }
 }
 
-const sendCouldNotFindEmbed = async (player, interaction) => {
+const sendMiscErrorEmbed = async (interaction, msg) => {
+    await interaction.channel.send({
+        embeds: [
+            new MessageEmbed()
+                .setColor("RED")
+                .setAuthor({
+                    name: "Prestige Infocenter",
+                    iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                })
+                .setTitle(`Player Error`)
+                .setDescription(msg)
+                .setImage('https://i.imgur.com/910F0td.png')
+                .setTimestamp(Date.now())
+        ]
+    })
+}
+
+const sendCouldNotFindEmbed = async (player, interaction, message) => {
     let requestedName = player.requestedUsername
     let found = player.found
-    if (requestedName && found == "Not Found") {
+
+    let discordId = player.discordId
+
+    if ((requestedName && found == "Not Found") || (discordId)) {
+        let msg = ""
+        if (requestedName) {
+            msg = `Could not find roblox data for ${requestedName}`
+        } else {
+            msg = `Could not find roblox data for discord user <@!${discordId}>`
+        }
         await interaction.channel.send({
             embeds: [
                 new MessageEmbed()
@@ -77,7 +111,7 @@ const sendCouldNotFindEmbed = async (player, interaction) => {
                         iconURL: "https://i.imgur.com/y4Gpo0V.png"
                     })
                     .setTitle(`Player Error`)
-                    .setDescription(`Could not find roblox data for ${requestedName}`)
+                    .setDescription(msg)
                     .setImage('https://i.imgur.com/910F0td.png')
                     .setTimestamp(Date.now())
             ]
@@ -134,7 +168,44 @@ const sendSuccessEmbed = async (robloxId, robloxName, prestige, newPrestige, int
     await interaction.channel.send({ embeds: [embedReply] })
 }
 
+const sendFinalSuccessEmbed = async (interaction) => {
 
+    const authorRobloxData = await getRobloxUsersFromMembers([interaction.user.id])
+
+    if (authorRobloxData && authorRobloxData[0]) {
+        const robloxId = authorRobloxData[0].robloxId
+        const robloxName = authorRobloxData[0].cachedUsername
+
+        if (robloxId && robloxName) {
+            const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
+            const avatarUrl = avatarData[0].imageUrl
+
+            const rankName = await getRankNameInGUF(robloxId)
+
+            await interaction.channel.send({
+                embeds: [
+                    new MessageEmbed()
+                        .setColor("GREEN")
+                        .setAuthor({
+                            name: "Prestige Infocenter",
+                            iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                        })
+
+                        .setTitle(`${rankName} ${robloxName}`)
+                        .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
+                        .setThumbnail(avatarUrl)
+
+                        // Given prestige
+                        .setDescription(`Successfully awarded prestige (see above)`)
+
+                        .setImage('https://i.imgur.com/910F0td.png')
+
+                        .setTimestamp(Date.now())
+                ]
+            })
+        }
+    }
+}
 
 const run = async (client, interaction) => {
     await interaction.reply("Awarding prestige...")
@@ -149,7 +220,7 @@ const run = async (client, interaction) => {
 
     //Check if any prestige is actually being given:
     if (prestige.sP == 0 && prestige.kP == 0 && prestige.hP == 0 && prestige.lP == 0){
-        sendRedErrorEmbed(interaction, "Must specify at least one type of prestige and an amount to award")
+        sendMiscErrorEmbed(interaction, "Must specify at least one type of prestige and an amount to award")
         return await interaction.followUp("Error awarding prestige")
     }
 
@@ -165,28 +236,15 @@ const run = async (client, interaction) => {
         givingTooMuchPrestigeErrorMessage = `Awarding too much Leadership Prestige (Limit: ${prestigeLimits.lP})`
     }
     if (givingTooMuchPrestigeErrorMessage) {
-        sendRedErrorEmbed(interaction, givingTooMuchPrestigeErrorMessage)
+        sendMiscErrorEmbed(interaction, givingTooMuchPrestigeErrorMessage)
         return await interaction.followUp("Error awarding prestige")
     }
 
-    if (Math.abs(prestige.hP) > prestigeLimits.hP) {
-        sendRedErrorEmbed(interaction, `Awarding too much Honor Prestige (Limit: ${prestigeLimits.hP})`)
-        return await interaction.followUp("Error awarding prestige")
-    }
-
-    if (Math.abs(prestige.lP) > prestigeLimits.lP) {
-        sendRedErrorEmbed(interaction, `Awarding too much Leadership Prestige (Limit: ${prestigeLimits.lP})`)
-        return await interaction.followUp("Error awarding prestige")
-    }
-
-    sendRedErrorEmbed(interaction, `Awarding too much Strength Prestige (Limit: ${prestigeLimits.sP})`)
-    return await interaction.followUp("Error awarding prestige")
     let membersText = String(members.replace(/[,@<>!]/g, ""))
     membersText = membersText.replace(/\s\s+/g, ' ');
     let memberArray = membersText.split(" ")
     //interaction.deferReply();
-    
-    let embedsSent = []
+
     if (!reason) return interaction.followUp("Invalid reason")
 
     const robloxData = await getRobloxUsersFromMembers(memberArray)
@@ -207,69 +265,9 @@ const run = async (client, interaction) => {
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
-
-                const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
-                const avatarUrl = avatarData[0].imageUrl
-
-                const rankName = await getRankNameInGUF(robloxId)
-
-                let description = ``
-                // Add given prestige to description
-                given = Object.keys(prestige).map((type) => {
-                    if (prestige[type] !== 0) {
-                        description += `${newPrestige[type] - prestige[type]}${type} -> ${newPrestige[type]}${type} **(+${prestige[type]}${type})** \n`
-                    }
-                })
-
-                // Add next rank information
-                description += `\nNext Rank: **Soldier (10sP)**\n`
-
-                const embedReply = new MessageEmbed()
-                    .setColor("BLUE")
-                    .setAuthor({
-                        name: "Prestige Infocenter",
-                        iconURL: "https://i.imgur.com/y4Gpo0V.png"
-                    })
-
-                    .setTitle(`${rankName} ${robloxName}`)
-                    .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
-                    .setThumbnail(avatarUrl)
-
-                    // Given prestige
-                    .setDescription(`${description}`)
-
-                    // Current prestige
-                    .addFields(
-                        { name: 'sP', value: `${newPrestige.sP}`, inline: true },
-                        { name: 'kP', value: `${newPrestige.kP}`, inline: true },
-                        { name: 'hP', value: `${newPrestige.hP}`, inline: true },
-                        { name: 'lP', value: `${newPrestige.lP}`, inline: true },
-                    )
-
-                    .setImage('https://i.imgur.com/910F0td.png')
-
-                    .setTimestamp(Date.now())
-
-                embedsSent.push(embedReply)
-
-                await interaction.channel.send({ embeds: [embedReply] })
+                sendSuccessEmbed(robloxId, robloxName, prestige, newPrestige, interaction, embedsSent)
             } else {
-                let requestedName = player.requestedUsername
-                let found = player.found
-                if (requestedName && found == "Not Found") {
-                    await interaction.channel.send({ embeds: [
-                        new MessageEmbed()
-                        .setColor("RED")
-                        .setAuthor({
-                            name: "Prestige Infocenter",
-                            iconURL: "https://i.imgur.com/y4Gpo0V.png"
-                        })
-                        .setTitle(`Player Error`)
-                        .setDescription(`Could not find roblox data for ${requestedName}`)
-                        .setImage('https://i.imgur.com/910F0td.png')
-                        .setTimestamp(Date.now())
-                    ]})  
-                }
+                sendCouldNotFindEmbed(player, interaction)
             }
         }
 
