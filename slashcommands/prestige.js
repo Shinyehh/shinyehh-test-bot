@@ -1,6 +1,6 @@
 const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
-const { getRankNameInGUF, getRankNameFromID, getRobloxUsersFromMembers } = require('../lib/functions')
+const { getRankNameInGUF, getRankIdInGUF, getRankNameFromID, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 const rankData = require('../config/ranks.json')
 
@@ -230,38 +230,57 @@ const sendFinalSuccessEmbed = async (interaction) => {
 }
 
 const tryPromote = async (robloxId, prestige) => {
+    const currentRankId = await getRankIdInGUF(robloxId)
     const currentRankName = await getRankNameInGUF(robloxId)
-    const currentRankId = rankData[currentRankName].id
 
     let highestRankId = currentRankId
     let highestRankName = currentRankName
+
     for (const [name, rank] of Object.entries(rankData)) {
-        const id = rank.id
+        const id = Number(name)//rank.id
         // Check main prestige requirement met
         if (prestige[rank.mainPrestige] < rank.mainPrestigeValue) {
             // Main prestige requirement NOT met
+            if (id < highestRankId) {
+                console.log("DEMOTING")
+                await noblox.setRank(process.env.GROUP, robloxId, id)//6870149, robloxId, highestRankId)
+                console.log("DEMOTED!!!")
+            }
             return
         }
 
         let secondaryTotal = 0
+        let secondaryPrestige = rank.secondaryPrestige
+
         for (const type of secondaryPrestige) {
             secondaryTotal += prestige[type]
         }
-        if (secondaryTotal >= secondaryPrestigeValue) {
-            // Secondary prestige NOT met
+        console.log("secondary total:")
+        console.log(secondaryTotal)
+        if (secondaryTotal < rank.secondaryPrestigeValue) {
+           // Secondary prestige NOT met
+            if (id < highestRankId) {
+                console.log("DEMOTING")
+                await noblox.setRank(process.env.GROUP, robloxId, id)//6870149, robloxId, highestRankId)
+                console.log("DEMOTED!!!")
+            }
             return
         }
 
-        if (id > highestRankId) {
+        console.log(`id: ${id}; highestRankId: ${highestRankId}`)
+        if (id > highestRankId) { console.log("YES")
             highestRankId = id
             highestRankName = name
         }
-    }
 
-    if (highestRankId !== currentRankId) {
-        await noblox.setRank(6870149, robloxId, highestRankId)
+        console.log(`highest rank ID: ${highestRankId}; currentRankId: ${currentRankId}`)
+        if (highestRankId !== currentRankId) {
+            console.log("PROMOTING")
+            await noblox.setRank(process.env.GROUP, robloxId, highestRankId)//6870149, robloxId, highestRankId)
+            console.log("PROMOTED!!!")
+            return highestRankName
+        }
     }
-
     return highestRankName
 }
 

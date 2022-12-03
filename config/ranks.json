@@ -1,15 +1,15 @@
 {
-    "Conscript": {
-        "id": "1",
+    "1": {
+        "name": "[1] Conscript",
         "total": 0,
         "mainPrestige": "sP",
         "mainPrestigeValue": 0,
         "secondaryPrestige": [],
         "secondaryPrestigeValue": 0
     },
-    "Soldier": {
-        "id": "2",
-        "total": 0,
+    "2": {
+        "name": "[2] Soldier",
+        "total": 5,
         "badgeId": 123456,
         "mainPrestige": "sP",
         "mainPrestigeValue": 0,
@@ -20,8 +20,8 @@
         ],
         "secondaryPrestigeValue": 5
     },
-    "Scout": {
-        "id": "3",
+    "3": {
+        "name": "[3] Scout",
         "total": 20,
         "mainPrestige": "sP",
         "mainPrestigeValue": 15,
@@ -31,8 +31,8 @@
         ],
         "secondaryPrestigeValue": 5
     },
-    "Guard": {
-        "id": "4",
+    "4": {
+        "name": "[4] Guard",
         "total": 40,
         "mainPrestige": "sP",
         "mainPrestigeValue": 30,
@@ -42,8 +42,8 @@
         ],
         "secondaryPrestigeValue": 10
     },
-    "Marksman": {
-        "id": 5,
+    "5": {
+        "name": "[5] Marksman",
         "total": 80,
         "mainPrestige": "sP",
         "mainPrestigeValue": 60,
@@ -53,7 +53,8 @@
         ],
         "secondaryPrestigeValue": 20
     },
-    "Watchman": {
+    "6": {
+        "name": "[6] Watchman",
         "total": 160,
         "mainPrestige": "sP",
         "mainPrestigeValue": 120,
@@ -63,7 +64,8 @@
         ],
         "secondaryPrestigeValue": 40
     },
-    "Specialist": {
+    "7": {
+        "name": "[7] Specialist",
         "total": 260,
         "mainPrestige": "sP",
         "mainPrestigeValue": 195,
@@ -73,7 +75,8 @@
         ],
         "secondaryPrestigeValue": 65
     },
-    "Sentinel": {
+    "8": {
+        "name": "[8] Sentinel",
         "total": 400,
         "mainPrestige": "sP",
         "mainPrestigeValue": 300,
@@ -83,7 +86,8 @@
         ],
         "secondaryPrestigeValue": 100
     },
-    "Vanguard": {
+    "9": {
+        "name": "[9] Vanguard",
         "total": 540,
         "mainPrestige": "sP",
         "mainPrestigeValue": 405,
