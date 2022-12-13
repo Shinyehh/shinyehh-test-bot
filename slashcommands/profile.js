@@ -15,7 +15,7 @@ const run = async (client, interaction) => {
 
     const prestigeRef = db.collection('PrestigeDatabase').doc(robloxId)
     const doc = await prestigeRef.get();
-    let prestige = { sP: 0, kP: 0, lP: 0, hP: 0 }
+    let prestige = { sP: 0, dP: 0, lP: 0, hP: 0 }
     if (doc.exists) {
         prestige = doc.data()
     }
@@ -39,7 +39,7 @@ const run = async (client, interaction) => {
 
                 .addFields(
                     { name: 'sP', value: String(prestige.sP), inline: true },
-                    { name: 'kP', value: String(prestige.kP), inline: true },
+                    { name: 'dP', value: String(prestige.dP), inline: true },
                     { name: 'hP', value: String(prestige.hP), inline: true },
                     { name: 'lP', value: String(prestige.lP), inline: true },
                 )

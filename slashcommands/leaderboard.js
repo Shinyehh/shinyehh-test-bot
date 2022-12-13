@@ -10,8 +10,8 @@ const run = async (client, interaction) => {
         components: [
             new MessageActionRow().addComponents([
                 new MessageButton().setCustomId("leaderboard-all").setStyle("PRIMARY").setLabel("All"),
+                new MessageButton().setCustomId("leaderboard-dP").setStyle("PRIMARY").setLabel("Discipline"),
                 new MessageButton().setCustomId("leaderboard-sP").setStyle("PRIMARY").setLabel("Strength"),
-                new MessageButton().setCustomId("leaderboard-kP").setStyle("PRIMARY").setLabel("Knowledge"),
                 new MessageButton().setCustomId("leaderboard-hP").setStyle("PRIMARY").setLabel("Honor"),
                 new MessageButton().setCustomId("leaderboard-lP").setStyle("PRIMARY").setLabel("Leadership")
             ])

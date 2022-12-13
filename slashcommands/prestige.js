@@ -5,15 +5,15 @@ const { db } = require('../lib/firebase')
 const rankData = require('../config/ranks.json')
 
 const prestigeLimits = {
-    sP: 10,
-    kP: 5,
-    hP: 6,
+    dP: 10,
+    sP: 7,
+    hP: 7,
     lP: 5
 }
 
 const prestigeNames = {
+    dP: 'Discipline',
     sP: 'Strength',
-    kP: 'Knowledge',
     hP: 'Honor',
     lP: 'Leadership'
 }
@@ -37,11 +37,11 @@ function checkIfCanGiveLeadershipPrestige(interaction) {
 }
 
 const createDatabaseProfile = async (robloxId, prestige) => {
-    ({ sP, kP, hP, lP } = prestige)
+    ({ sP, dP, hP, lP } = prestige)
 
     db.collection('PrestigeDatabase').doc(robloxId).set({
         'sP': sP || 0,
-        'kP': kP || 0,
+        'dP': dP || 0,
         'hP': hP || 0,
         'lP': lP || 0,
     });
@@ -49,10 +49,10 @@ const createDatabaseProfile = async (robloxId, prestige) => {
 
 const givePrestige = async (robloxId, robloxName, prestige) => {
 
-    ({ sP, kP, hP, lP } = prestige)
+    ({ sP, dP, hP, lP } = prestige)
     const basePrestige = {
         'sP': sP || 0,
-        'kP': kP || 0,
+        'dP': dP || 0,
         'hP': hP || 0,
         'lP': lP || 0
     }
@@ -75,20 +75,20 @@ const givePrestige = async (robloxId, robloxName, prestige) => {
             return basePrestige
         } else {
             const currentsP = data.sP || 0
-            const currentkP = data.kP || 0
+            const currentdP = data.dP || 0
             const currenthP = data.hP || 0
             const currentlP = data.lP || 0
 
             db.collection('PrestigeDatabase').doc(robloxId).set({
                 'sP': currentsP + sP,
-                'kP': currentkP + kP,
+                'dP': currentdP + dP,
                 'hP': currenthP + hP,
                 'lP': currentlP + lP,
             });
 
             return {
                 'sP': currentsP + sP,
-                'kP': currentkP + kP,
+                'dP': currentdP + dP,
                 'hP': currenthP + hP,
                 'lP': currentlP + lP
             }
@@ -176,7 +176,7 @@ const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPre
         // Current prestige
         .addFields(
             { name: 'sP', value: `${newPrestige.sP}`, inline: true },
-            { name: 'kP', value: `${newPrestige.kP}`, inline: true },
+            { name: 'dP', value: `${newPrestige.dP}`, inline: true },
             { name: 'hP', value: `${newPrestige.hP}`, inline: true },
             { name: 'lP', value: `${newPrestige.lP}`, inline: true },
         )
@@ -236,17 +236,25 @@ const tryPromote = async (robloxId, prestige) => {
     let highestRankId = currentRankId
     let highestRankName = currentRankName
 
+    let currentTotalPrestige = (prestige.dP || 0) + (prestige.sP || 0) + (prestige.hP || 0) + (prestige.lP || 0)
+    //console.log(`CURRENT AMOUNT OF PRESTIGE: ${currentTotalPrestige}`)
+
+    if (rankData[String(currentRankId)] == null) {
+        console.log(`Cannot toggle rank for this user.`)
+        return highestRankName
+    }
+    let previousId = 1
     for (const [name, rank] of Object.entries(rankData)) {
         const id = Number(name)//rank.id
-        // Check main prestige requirement met
-        if (prestige[rank.mainPrestige] < rank.mainPrestigeValue) {
+        // Check total prestige requirement met
+        console.log(`TOTAL PRESTIGE NEEDED FOR RANK ${name}: ${rank.total}; CURRENT TOTAL PRESTIGE: ${currentTotalPrestige}`)
+        if (currentTotalPrestige < rank.total) { //if (prestige[rank.mainPrestige] < rank.mainPrestigeValue) {
             // Main prestige requirement NOT met
-            if (id < highestRankId) {
-                console.log("DEMOTING")
-                await noblox.setRank(process.env.GROUP, robloxId, id)//6870149, robloxId, highestRankId)
-                console.log("DEMOTED!!!")
+            if (id <= highestRankId && previousId > 0) {
+                await noblox.setRank(process.env.GROUP, robloxId, previousId)//6870149, robloxId, highestRankId)
+                console.log(`USER WAS DEMOTED TO RANK ${previousId} DUE TO NOT HAVING THE APPROPRIATE TOTAL NUMBER OF PRESTIGE`)
             }
-            return
+            break
         }
 
         let secondaryTotal = 0
@@ -255,16 +263,14 @@ const tryPromote = async (robloxId, prestige) => {
         for (const type of secondaryPrestige) {
             secondaryTotal += prestige[type]
         }
-        console.log("secondary total:")
-        console.log(secondaryTotal)
+        console.log(`SECONDARY PRESTIGE TOTAL: ${secondaryTotal}`)
         if (secondaryTotal < rank.secondaryPrestigeValue) {
            // Secondary prestige NOT met
-            if (id < highestRankId) {
-                console.log("DEMOTING")
+            if (id <= highestRankId && previousId > 0) {
                 await noblox.setRank(process.env.GROUP, robloxId, id)//6870149, robloxId, highestRankId)
-                console.log("DEMOTED!!!")
+                console.log(`USER WAS DEMOTED TO RANK ${previousId} DUE TO NOT HAVING THE APPROPRIATE SECONDARY PRESTIGE TOTAL`)
             }
-            return
+            break
         }
 
         console.log(`id: ${id}; highestRankId: ${highestRankId}`)
@@ -274,12 +280,14 @@ const tryPromote = async (robloxId, prestige) => {
         }
 
         console.log(`highest rank ID: ${highestRankId}; currentRankId: ${currentRankId}`)
-        if (highestRankId !== currentRankId) {
-            console.log("PROMOTING")
-            await noblox.setRank(process.env.GROUP, robloxId, highestRankId)//6870149, robloxId, highestRankId)
-            console.log("PROMOTED!!!")
-            return highestRankName
-        }
+        previousId = id
+    }
+ 
+    if (highestRankId !== currentRankId) {
+        console.log("PROMOTING")
+        await noblox.setRank(process.env.GROUP, robloxId, highestRankId)//6870149, robloxId, highestRankId)
+        console.log("PROMOTED!!!")
+        return highestRankName
     }
     return highestRankName
 }
@@ -289,14 +297,14 @@ const run = async (client, interaction) => {
     let members = interaction.options.getString("user")
     let prestige = {
         sP: interaction.options.getNumber("sp") || 0,
-        kP: interaction.options.getNumber("kp") || 0,
+        dP: interaction.options.getNumber("dp") || 0,
         hP: interaction.options.getNumber("hp") || 0,
         lP: interaction.options.getNumber("lp") || 0
     }
     let reason = interaction.options.getString("reason")
 
     //Check if any prestige is actually being given:
-    if (prestige.sP == 0 && prestige.kP == 0 && prestige.hP == 0 && prestige.lP == 0) {
+    if (prestige.sP == 0 && prestige.dP == 0 && prestige.hP == 0 && prestige.lP == 0) {
         sendMiscErrorEmbed(interaction, "Must specify at least one type of prestige and an amount to award")
         return await interaction.followUp("Error awarding prestige")
     }
@@ -402,8 +410,8 @@ module.exports = {
             required: false
         },
         {
-            name: "kp",
-            description: `Amount of Knowledge Prestige (LIMIT: ${prestigeLimits['kP']})`,
+            name: "dp",
+            description: `Amount of Discipline Prestige (LIMIT: ${prestigeLimits['dP']})`,
             type: 10, //Number //3, //STRING
             required: false
         },

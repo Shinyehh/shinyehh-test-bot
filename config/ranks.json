@@ -2,7 +2,7 @@
     "1": {
         "name": "[1] Conscript",
         "total": 0,
-        "mainPrestige": "sP",
+        "mainPrestige": "dP",
         "mainPrestigeValue": 0,
         "secondaryPrestige": [],
         "secondaryPrestigeValue": 0
@@ -11,33 +11,20 @@
         "name": "[2] Soldier",
         "total": 5,
         "badgeId": 123456,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 0,
-        "secondaryPrestige": [
-            "sP",
-            "kP",
-            "hP"
-        ],
-        "secondaryPrestigeValue": 5
+        "secondaryPrestige": [],
+        "secondaryPrestigeValue": 0
     },
     "3": {
         "name": "[3] Scout",
         "total": 20,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 15,
-        "secondaryPrestige": [
-            "kP",
-            "hP"
-        ],
-        "secondaryPrestigeValue": 5
+        "secondaryPrestige": [],
+        "secondaryPrestigeValue": 0
     },
     "4": {
         "name": "[4] Guard",
         "total": 40,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 30,
         "secondaryPrestige": [
-            "kP",
+            "sP",
             "hP"
         ],
         "secondaryPrestigeValue": 10
@@ -45,10 +32,8 @@
     "5": {
         "name": "[5] Marksman",
         "total": 80,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 60,
         "secondaryPrestige": [
-            "kP",
+            "sP",
             "hP"
         ],
         "secondaryPrestigeValue": 20
@@ -56,10 +41,8 @@
     "6": {
         "name": "[6] Watchman",
         "total": 160,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 120,
         "secondaryPrestige": [
-            "kP",
+            "sP",
             "hP"
         ],
         "secondaryPrestigeValue": 40
@@ -67,21 +50,17 @@
     "7": {
         "name": "[7] Specialist",
         "total": 260,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 195,
         "secondaryPrestige": [
-            "kP",
+            "sP",
             "hP"
         ],
-        "secondaryPrestigeValue": 65
+        "secondaryPrestigeValue": 60
     },
     "8": {
         "name": "[8] Sentinel",
         "total": 400,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 300,
         "secondaryPrestige": [
-            "kP",
+            "sP",
             "hP"
         ],
         "secondaryPrestigeValue": 100
@@ -89,10 +68,8 @@
     "9": {
         "name": "[9] Vanguard",
         "total": 540,
-        "mainPrestige": "sP",
-        "mainPrestigeValue": 405,
         "secondaryPrestige": [
-            "kP",
+            "sP",
             "hP"
         ],
         "secondaryPrestigeValue": 135
