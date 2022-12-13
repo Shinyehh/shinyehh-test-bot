@@ -82,7 +82,7 @@ module.exports = {
 
         const categoryTitles = {
             all: 'Total Prestige',
-            kP: 'Knowledge Prestige',
+            dP: 'Discipline Prestige',
             sP: 'Strength Prestige',
             lP: 'Leadership Prestige',
             hP: 'Honor Prestige'
