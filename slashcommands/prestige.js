@@ -143,8 +143,8 @@ const sendCouldNotFindEmbed = async (player, interaction, message) => {
     }
 }
 
-const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPrestige, interaction, embedsSent) => {
-
+const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPrestige, nextRankInfo, interaction, embedsSent) => {
+    let totalNewPrestige = (newPrestige.dP || 0) + (newPrestige.sP || 0) + (newPrestige.hP || 0) + (newPrestige.lP || 0)
     const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
     const avatarUrl = avatarData[0].imageUrl
 
@@ -152,13 +152,20 @@ const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPre
     // Add given prestige to description
     given = Object.keys(prestige).map((type) => {
         if (prestige[type] !== 0) {
-            description += `${newPrestige[type] - prestige[type]}${type} -> ${newPrestige[type]}${type} **(+${prestige[type]}${type})** \n`
+            let plusSign = ""
+            if (prestige[type] > 0){plusSign = "+"}
+            description += `${newPrestige[type] - prestige[type]}${type} -> ${newPrestige[type]}${type} **(${plusSign}${prestige[type]}${type})** \n`
         }
     })
 
     // Add next rank information
-    description += `\nNext Rank: **Soldier (10sP)**\n`
-
+    //description += `\nNext Rank: **Soldier (10sP)**\n`
+    let secondaryPrestigeDescription = ""
+ 
+    if (nextRankInfo.TotalSecondary > 0 && nextRankInfo.SecondaryTypes) {
+        secondaryPrestigeDescription = ` (incl. ${nextRankInfo.TotalSecondary} ${nextRankInfo.SecondaryTypes})`
+    }
+    description += `\nNext Rank: **${nextRankInfo.RankName} : ${nextRankInfo.Total} Total Prestige${secondaryPrestigeDescription}**\n`
     const embedReply = new MessageEmbed()
         .setColor("BLUE")
         .setAuthor({
@@ -179,6 +186,7 @@ const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPre
             { name: 'dP', value: `${newPrestige.dP}`, inline: true },
             { name: 'hP', value: `${newPrestige.hP}`, inline: true },
             { name: 'lP', value: `${newPrestige.lP}`, inline: true },
+            {name: `Total:`, value: `${totalNewPrestige} Prestige`, inline: false}
         )
 
         .setImage('https://i.imgur.com/910F0td.png')
@@ -229,6 +237,44 @@ const sendFinalSuccessEmbed = async (interaction) => {
     }
 }
 
+const getNextRankInfo = async (rankId, rankName) => {
+    const currentRankId = Number(rankId)
+    let nextRankId = Number(rankId)
+    let nextRankInfo
+
+    for (const [name, rank] of Object.entries(rankData)) {
+        const id = Number(name)
+        if (id > nextRankId) {
+            nextRankId = id
+            nextRankInfo = rank
+            break
+        }
+    }
+
+    if (nextRankId > currentRankId && nextRankInfo) {
+        console.log(`NEXT RANK ID: ${nextRankId}`)
+
+        const secondaryPrestige = nextRankInfo.secondaryPrestige
+        let secondaryTypes
+
+        for (const type of secondaryPrestige) {
+            if (secondaryTypes == null) {
+                secondaryTypes = type
+            } else {
+                secondaryTypes = secondaryTypes + "/" + type
+            }
+            
+        }
+        console.log(secondaryTypes)
+        return {
+            ["RankName"] : nextRankInfo.name,
+            ["Total"] : nextRankInfo.total,
+            ["TotalSecondary"] : nextRankInfo.secondaryPrestigeValue,
+            ["SecondaryTypes"] : secondaryTypes
+        }
+    }
+}
+
 const tryPromote = async (robloxId, prestige) => {
     const currentRankId = await getRankIdInGUF(robloxId)
     const currentRankName = await getRankNameInGUF(robloxId)
@@ -241,9 +287,10 @@ const tryPromote = async (robloxId, prestige) => {
 
     if (rankData[String(currentRankId)] == null) {
         console.log(`Cannot toggle rank for this user.`)
-        return highestRankName
+        return {["RankId"] : highestRankId, ["RankName"]: highestRankName}
     }
     let previousId = 1
+    let previousName = rankData["1"].name
     for (const [name, rank] of Object.entries(rankData)) {
         const id = Number(name)//rank.id
         // Check total prestige requirement met
@@ -253,6 +300,8 @@ const tryPromote = async (robloxId, prestige) => {
             if (id <= highestRankId && previousId > 0) {
                 await noblox.setRank(process.env.GROUP, robloxId, previousId)//6870149, robloxId, highestRankId)
                 console.log(`USER WAS DEMOTED TO RANK ${previousId} DUE TO NOT HAVING THE APPROPRIATE TOTAL NUMBER OF PRESTIGE`)
+                highestRankId = previousId
+                highestRankName = previousName
             }
             break
         }
@@ -269,6 +318,8 @@ const tryPromote = async (robloxId, prestige) => {
             if (id <= highestRankId && previousId > 0) {
                 await noblox.setRank(process.env.GROUP, robloxId, id)//6870149, robloxId, highestRankId)
                 console.log(`USER WAS DEMOTED TO RANK ${previousId} DUE TO NOT HAVING THE APPROPRIATE SECONDARY PRESTIGE TOTAL`)
+                highestRankId = previousId
+                highestRankName = previousName
             }
             break
         }
@@ -276,20 +327,22 @@ const tryPromote = async (robloxId, prestige) => {
         console.log(`id: ${id}; highestRankId: ${highestRankId}`)
         if (id > highestRankId) { console.log("YES")
             highestRankId = id
-            highestRankName = name
+            highestRankName = rank.name
         }
 
         console.log(`highest rank ID: ${highestRankId}; currentRankId: ${currentRankId}`)
         previousId = id
+        previousName = rank.name
     }
  
-    if (highestRankId !== currentRankId) {
+    if (highestRankId > currentRankId) {
         console.log("PROMOTING")
         await noblox.setRank(process.env.GROUP, robloxId, highestRankId)//6870149, robloxId, highestRankId)
         console.log("PROMOTED!!!")
-        return highestRankName
+        //return {["RankId"] : highestRankId, ["RankName"]: highestRankName}//highestRankName
     }
-    return highestRankName
+    console.log("HIGHEST RANK NAME: " + highestRankName)
+    return {["RankId"] : highestRankId, ["RankName"]: highestRankName} //highestRankName
 }
 
 const run = async (client, interaction) => {
@@ -358,9 +411,12 @@ const run = async (client, interaction) => {
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
-                const rankName = tryPromote(robloxId, newPrestige)
+                const rankInfo = await tryPromote(robloxId, newPrestige)
+                const rankName = rankInfo.RankName
+                const rankId = rankInfo.RankId
 
-                sendSuccessEmbed(robloxId, robloxName, rankName, prestige, newPrestige, interaction, embedsSent)
+                const nextRankInfo = await getNextRankInfo(rankId, rankName)
+                sendSuccessEmbed(robloxId, robloxName, rankName, prestige, newPrestige, nextRankInfo, interaction, embedsSent)
             } else {
                 sendCouldNotFindEmbed(player, interaction)
             }
