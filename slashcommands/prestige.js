@@ -162,10 +162,14 @@ const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPre
     //description += `\nNext Rank: **Soldier (10sP)**\n`
     let secondaryPrestigeDescription = ""
  
-    if (nextRankInfo.TotalSecondary > 0 && nextRankInfo.SecondaryTypes) {
+    if (nextRankInfo && nextRankInfo.TotalSecondary && nextRankInfo.TotalSecondary > 0 && nextRankInfo.SecondaryTypes) {
         secondaryPrestigeDescription = ` (incl. ${nextRankInfo.TotalSecondary} ${nextRankInfo.SecondaryTypes})`
     }
-    description += `\nNext Rank: **${nextRankInfo.RankName} : ${nextRankInfo.Total} Total Prestige${secondaryPrestigeDescription}**\n`
+
+    if (nextRankInfo && rankRankInfo.RankName && nextRankInfo.Total) {
+        description += `\nNext Rank: **${nextRankInfo.RankName} : ${nextRankInfo.Total} Total Prestige${secondaryPrestigeDescription}**\n`
+    }
+    
     const embedReply = new MessageEmbed()
         .setColor("BLUE")
         .setAuthor({
