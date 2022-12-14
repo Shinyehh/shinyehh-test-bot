@@ -1,6 +1,7 @@
 {
     "1": {
         "name": "[1] Conscript",
+        "roleid": 1052434230975664158,
         "total": 0,
         "mainPrestige": "dP",
         "mainPrestigeValue": 0,
@@ -9,6 +10,7 @@
     },
     "2": {
         "name": "[2] Soldier",
+        "roleid": 1052434307366531123,
         "total": 5,
         "badgeId": 123456,
         "secondaryPrestige": [],
@@ -16,12 +18,14 @@
     },
     "3": {
         "name": "[3] Scout",
+        "roleid": 1052434342644809748,
         "total": 20,
         "secondaryPrestige": [],
         "secondaryPrestigeValue": 0
     },
     "4": {
         "name": "[4] Guard",
+        "roleid": 1052434383853858877,
         "total": 40,
         "secondaryPrestige": [
             "sP",
@@ -31,6 +35,7 @@
     },
     "5": {
         "name": "[5] Marksman",
+        "roleid": 1052434468872409139,
         "total": 80,
         "secondaryPrestige": [
             "sP",
@@ -40,6 +45,7 @@
     },
     "6": {
         "name": "[6] Watchman",
+        "roleid": 1052434450266476576,
         "total": 160,
         "secondaryPrestige": [
             "sP",
@@ -49,6 +55,7 @@
     },
     "7": {
         "name": "[7] Specialist",
+        "roleid": 1052434570911424652,
         "total": 260,
         "secondaryPrestige": [
             "sP",
@@ -58,6 +65,7 @@
     },
     "8": {
         "name": "[8] Sentinel",
+        "roleid": 1052434635214303233,
         "total": 400,
         "secondaryPrestige": [
             "sP",
@@ -67,6 +75,7 @@
     },
     "9": {
         "name": "[9] Vanguard",
+        "roleid": 1052434869457793025,
         "total": 540,
         "secondaryPrestige": [
             "sP",
