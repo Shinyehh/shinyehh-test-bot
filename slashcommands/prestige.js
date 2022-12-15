@@ -143,7 +143,7 @@ const sendCouldNotFindEmbed = async (player, interaction, message) => {
     }
 }
 
-const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPrestige, nextRankInfo, interaction, embedsSent) => {
+const sendSuccessEmbed = async (robloxId, robloxName, currentRankName, newRankName, changeRankAction, prestige, newPrestige, nextRankInfo, interaction, reason, embedsSent) => {
     let totalNewPrestige = (newPrestige.dP || 0) + (newPrestige.sP || 0) + (newPrestige.hP || 0) + (newPrestige.lP || 0)
     const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
     const avatarUrl = avatarData[0].imageUrl
@@ -154,47 +154,59 @@ const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPre
         if (prestige[type] !== 0) {
             let plusSign = ""
             if (prestige[type] > 0){plusSign = "+"}
-            description += `${newPrestige[type] - prestige[type]}${type} -> ${newPrestige[type]}${type} **(${plusSign}${prestige[type]}${type})** \n`
+            description += `${newPrestige[type] - prestige[type]} ${type} -> ${newPrestige[type]} ${type} **(${plusSign}${prestige[type]} ${type})** \n`
         }
     })
-
+    description += `Reason: ${reason}\n`
     // Add next rank information
     //description += `\nNext Rank: **Soldier (10sP)**\n`
+
+    let color = "BLUE"
+    if (newRankName && currentRankName && changeRankAction) {
+
+        if (changeRankAction == "Promoted") {
+            color = "#FF69B4"
+            description += `\nRank: Promoted from **${currentRankName}** to **${newRankName}**!`
+        } else if (changeRankAction == "Demoted") {
+            color = "#ff5a00"
+            description += `\nRank: Demoted from **${currentRankName}** to **${newRankName}**!`
+        }
+    } else if (currentRankName) {
+        description += `\nRank: **${currentRankName}**`
+    }
+
     let secondaryPrestigeDescription = ""
- 
+
     if (nextRankInfo && nextRankInfo.TotalSecondary && nextRankInfo.TotalSecondary > 0 && nextRankInfo.SecondaryTypes) {
-        secondaryPrestigeDescription = ` (incl. ${nextRankInfo.TotalSecondary} ${nextRankInfo.SecondaryTypes})`
+        secondaryPrestigeDescription = ` incl. ${nextRankInfo.TotalSecondary} ${nextRankInfo.SecondaryTypes}`
     }
 
     if (nextRankInfo && nextRankInfo.RankName && nextRankInfo.Total) {
-        description += `\nNext Rank: **${nextRankInfo.RankName} : ${nextRankInfo.Total} Total Prestige${secondaryPrestigeDescription}**\n`
+        description += `\nNext Rank: **${nextRankInfo.RankName} (${nextRankInfo.Total} Total${secondaryPrestigeDescription})**\n`
     }
     
     const embedReply = new MessageEmbed()
-        .setColor("BLUE")
+        .setColor(color)
+        //.setTitle(`${currentRankName} ${robloxName}`)
+        .setTitle(`${robloxName}`)
+        .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
         .setAuthor({
             name: "Prestige Infocenter",
             iconURL: "https://i.imgur.com/y4Gpo0V.png"
         })
-
-        .setTitle(`${rankName} ${robloxName}`)
-        .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
-        .setThumbnail(avatarUrl)
-
+        .setImage('https://i.imgur.com/910F0td.png')
         // Given prestige
         .setDescription(`${description}`)
-
         // Current prestige
-        .addFields(
-            { name: 'dP', value: `${newPrestige.dP}`, inline: true },
-            { name: 'sP', value: `${newPrestige.sP}`, inline: true },
-            { name: 'hP', value: `${newPrestige.hP}`, inline: true },
-            { name: 'lP', value: `${newPrestige.lP}`, inline: true },
-            {name: `Total:`, value: `${totalNewPrestige} Prestige`, inline: false}
-        )
-
-        .setImage('https://i.imgur.com/910F0td.png')
-
+        //.addFields(
+        //    { name: 'dP', value: `${newPrestige.dP}`, inline: true },
+        //    { name: 'sP', value: `${newPrestige.sP}`, inline: true },
+        //    { name: 'hP', value: `${newPrestige.hP}`, inline: true },
+        //    { name: 'lP', value: `${newPrestige.lP}`, inline: true },
+        //    {name: `Total:`, value: `${totalNewPrestige} Prestige`, inline: false}
+        //)
+        .setThumbnail(avatarUrl)
+        //.setFooter({iconURL: `https://i.imgur.com/y4Gpo0V.png`})
         .setTimestamp(Date.now())
 
     embedsSent.push(embedReply)
@@ -292,7 +304,7 @@ const tryPromote = async (robloxId, prestige) => {
 
     if (rankData[String(currentRankId)] == null) {
         console.log(`Cannot toggle rank for this user.`)
-        return {["RankId"] : highestRankId, ["RankName"]: highestRankName}
+        return {["RankId"] : highestRankId, ["CurrentRankName"]: currentRankName}
     }
     let previousId = 1
     let previousName = rankData["1"].name
@@ -308,7 +320,8 @@ const tryPromote = async (robloxId, prestige) => {
                 highestRankId = previousId
                 highestRankName = previousName
             }
-            break
+            //break
+            return {["CurrentRankId"]: currentRankId, ["NewRankId"] : highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName}
         }
 
         let secondaryTotal = 0
@@ -326,7 +339,8 @@ const tryPromote = async (robloxId, prestige) => {
                 highestRankId = previousId
                 highestRankName = previousName
             }
-            break
+            //break
+            return {["CurrentRankId"]: currentRankId, ["NewRankId"] : highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName}
         }
 
         //console.log(`id: ${id}; highestRankId: ${highestRankId}`)
@@ -345,9 +359,10 @@ const tryPromote = async (robloxId, prestige) => {
         await noblox.setRank(process.env.GROUP, robloxId, highestRankId)//6870149, robloxId, highestRankId)
         console.log("PROMOTED!!!")
         //return {["RankId"] : highestRankId, ["RankName"]: highestRankName}//highestRankName
+        return {["CurrentRankId"]: currentRankId, ["NewRankId"] : highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName}
     }
     //console.log("HIGHEST RANK NAME: " + highestRankName)
-    return {["RankId"] : highestRankId, ["RankName"]: highestRankName} //highestRankName
+    return {["CurrentRankId"]: currentRankId, ["CurrentRankName"]: currentRankName} //highestRankName
 }
 
 const run = async (client, interaction) => {
@@ -416,12 +431,30 @@ const run = async (client, interaction) => {
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
+                
                 const rankInfo = await tryPromote(robloxId, newPrestige)
-                const rankName = rankInfo.RankName
-                const rankId = rankInfo.RankId
+                const currentRankName = rankInfo.CurrentRankName
+                const newRankName = rankInfo.NewRankName
+
+                const currentRankId = rankInfo.CurrentRankId
+                const newRankId = rankInfo.NewRankId
                 //console.log(`${rankName} ${rankId}`)
-                const nextRankInfo = await getNextRankInfo(rankId, rankName)
-                sendSuccessEmbed(robloxId, robloxName, rankName, prestige, newPrestige, nextRankInfo, interaction, embedsSent)
+                let changeRankAction
+                if (currentRankName && newRankName && currentRankId && newRankId) {
+                    if (Number(currentRankId) < Number(newRankId)) {
+                        changeRankAction = "Promoted"
+                    } else if (Number(currentRankId) > Number(newRankId)) {
+                        changeRankAction = "Demoted"
+                    }
+                }
+
+                let nextRankInfo
+                if (!newRankName && !newRankId && currentRankId && currentRankName) {
+                    nextRankInfo = await getNextRankInfo(currentRankId, currentRankName)
+                } else if (newRankName && newRankId){
+                    nextRankInfo = await getNextRankInfo(newRankId, newRankName)
+                }
+                sendSuccessEmbed(robloxId, robloxName, currentRankName, newRankName, changeRankAction, prestige, newPrestige, nextRankInfo, interaction, reason, embedsSent)
             } else {
                 sendCouldNotFindEmbed(player, interaction)
             }
