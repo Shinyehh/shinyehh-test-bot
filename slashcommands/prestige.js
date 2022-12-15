@@ -186,8 +186,8 @@ const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPre
 
         // Current prestige
         .addFields(
-            { name: 'sP', value: `${newPrestige.sP}`, inline: true },
             { name: 'dP', value: `${newPrestige.dP}`, inline: true },
+            { name: 'sP', value: `${newPrestige.sP}`, inline: true },
             { name: 'hP', value: `${newPrestige.hP}`, inline: true },
             { name: 'lP', value: `${newPrestige.lP}`, inline: true },
             {name: `Total:`, value: `${totalNewPrestige} Prestige`, inline: false}
@@ -243,7 +243,7 @@ const sendFinalSuccessEmbed = async (interaction) => {
 
 const getNextRankInfo = async (rankId, rankName) => {
     const currentRankId = Number(rankId)
-    let nextRankId = Number(rankId)
+    let nextRankId = currentRankId
     let nextRankInfo
 
     for (const [name, rank] of Object.entries(rankData)) {
@@ -256,7 +256,7 @@ const getNextRankInfo = async (rankId, rankName) => {
     }
 
     if (nextRankId > currentRankId && nextRankInfo) {
-        console.log(`NEXT RANK ID: ${nextRankId}`)
+        //console.log(`NEXT RANK ID: ${nextRankId}`)
 
         const secondaryPrestige = nextRankInfo.secondaryPrestige
         let secondaryTypes
@@ -269,7 +269,7 @@ const getNextRankInfo = async (rankId, rankName) => {
             }
             
         }
-        console.log(secondaryTypes)
+       //console.log(secondaryTypes)
         return {
             ["RankName"] : nextRankInfo.name,
             ["Total"] : nextRankInfo.total,
@@ -277,6 +277,7 @@ const getNextRankInfo = async (rankId, rankName) => {
             ["SecondaryTypes"] : secondaryTypes
         }
     }
+    return
 }
 
 const tryPromote = async (robloxId, prestige) => {
@@ -298,7 +299,7 @@ const tryPromote = async (robloxId, prestige) => {
     for (const [name, rank] of Object.entries(rankData)) {
         const id = Number(name)//rank.id
         // Check total prestige requirement met
-        console.log(`TOTAL PRESTIGE NEEDED FOR RANK ${name}: ${rank.total}; CURRENT TOTAL PRESTIGE: ${currentTotalPrestige}`)
+        //console.log(`TOTAL PRESTIGE NEEDED FOR RANK ${name}: ${rank.total}; CURRENT TOTAL PRESTIGE: ${currentTotalPrestige}`)
         if (currentTotalPrestige < rank.total) { //if (prestige[rank.mainPrestige] < rank.mainPrestigeValue) {
             // Main prestige requirement NOT met
             if (id <= highestRankId && previousId > 0) {
@@ -316,7 +317,7 @@ const tryPromote = async (robloxId, prestige) => {
         for (const type of secondaryPrestige) {
             secondaryTotal += prestige[type]
         }
-        console.log(`SECONDARY PRESTIGE TOTAL: ${secondaryTotal}`)
+        //console.log(`SECONDARY PRESTIGE TOTAL: ${secondaryTotal}`)
         if (secondaryTotal < rank.secondaryPrestigeValue) {
            // Secondary prestige NOT met
             if (id <= highestRankId && previousId > 0) {
@@ -328,13 +329,13 @@ const tryPromote = async (robloxId, prestige) => {
             break
         }
 
-        console.log(`id: ${id}; highestRankId: ${highestRankId}`)
+        //console.log(`id: ${id}; highestRankId: ${highestRankId}`)
         if (id > highestRankId) { console.log("YES")
             highestRankId = id
             highestRankName = rank.name
         }
 
-        console.log(`highest rank ID: ${highestRankId}; currentRankId: ${currentRankId}`)
+        //console.log(`highest rank ID: ${highestRankId}; currentRankId: ${currentRankId}`)
         previousId = id
         previousName = rank.name
     }
@@ -345,7 +346,7 @@ const tryPromote = async (robloxId, prestige) => {
         console.log("PROMOTED!!!")
         //return {["RankId"] : highestRankId, ["RankName"]: highestRankName}//highestRankName
     }
-    console.log("HIGHEST RANK NAME: " + highestRankName)
+    //console.log("HIGHEST RANK NAME: " + highestRankName)
     return {["RankId"] : highestRankId, ["RankName"]: highestRankName} //highestRankName
 }
 
@@ -398,7 +399,7 @@ const run = async (client, interaction) => {
     if (!reason) return interaction.followUp("Invalid reason")
 
     const robloxData = await getRobloxUsersFromMembers(memberArray)
-    console.log(robloxData)
+    //console.log(robloxData)
     if (!robloxData) return await interaction.followUp("Could not retrieve roblox data")
 
     let embedsSent = []
@@ -453,7 +454,7 @@ module.exports = {
     options: [
         {
             name: "user",
-            description: "The user to give prestige",
+            description: "The user(s) to give prestige (roblox name(s) or discord @(s))",
             type: 3,//6, //USER 
             required: true
         },
