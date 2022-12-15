@@ -166,7 +166,7 @@ const sendSuccessEmbed = async (robloxId, robloxName, rankName, prestige, newPre
         secondaryPrestigeDescription = ` (incl. ${nextRankInfo.TotalSecondary} ${nextRankInfo.SecondaryTypes})`
     }
 
-    if (nextRankInfo && rankRankInfo.RankName && nextRankInfo.Total) {
+    if (nextRankInfo && nextRankInfo.RankName && nextRankInfo.Total) {
         description += `\nNext Rank: **${nextRankInfo.RankName} : ${nextRankInfo.Total} Total Prestige${secondaryPrestigeDescription}**\n`
     }
     
@@ -418,7 +418,7 @@ const run = async (client, interaction) => {
                 const rankInfo = await tryPromote(robloxId, newPrestige)
                 const rankName = rankInfo.RankName
                 const rankId = rankInfo.RankId
-
+                //console.log(`${rankName} ${rankId}`)
                 const nextRankInfo = await getNextRankInfo(rankId, rankName)
                 sendSuccessEmbed(robloxId, robloxName, rankName, prestige, newPrestige, nextRankInfo, interaction, embedsSent)
             } else {
