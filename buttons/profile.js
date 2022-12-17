@@ -91,7 +91,6 @@ const totalPrestigeEmbed = async(interaction, members) => {
                 currentTotalSecondaryPrestige += prestige[type]
             }
         }
-        console.log("creatin embed")
         if (nextRankInfo && nextRankTotalPrestige && nextRankName) {
             
             let totalPrestigeToNextRank = nextRankTotalPrestige - currentTotalPrestige
@@ -142,6 +141,91 @@ const totalPrestigeEmbed = async(interaction, members) => {
         .setTimestamp(Date.now())
 }
 
+const playerInfoEmbed = async(interaction, members) => {
+    const robloxData = await getRobloxUsersFromMembers([members])
+    if (!robloxData) {
+        console.log("Cannot find roblox data")
+        return
+    }
+    console.log(robloxData)
+    let { robloxId, cachedUsername } = robloxData[0]
+    let { id, name} = robloxData[0]
+
+    robloxId = robloxId || id
+    cachedUsername = cachedUsername || name
+    //console.log(robloxId + cachedUsername)
+
+    if (!robloxData || !robloxId || !cachedUsername) {
+        //await interaction.message.send("Could not retrieve roblox data")
+        console.log("Could not find roblox data")
+        return 
+    }
+    const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
+    const avatarUrl = avatarData[0].imageUrl
+
+    let description = ``
+    const plrNobloxInfo = await noblox.getPlayerInfo({userId: Number(robloxId)})
+    description = `‣ Username: **${cachedUsername}**`
+    if (plrNobloxInfo && plrNobloxInfo.displayName && plrNobloxInfo.displayName !== cachedUsername) {
+        description += ` (Display Name: **${plrNobloxInfo.displayName}**\n)`
+    } else {description += `\n`}
+
+    let blurbFieldValue
+    description += `‣ User Id: **${robloxId}**\n`
+    if (plrNobloxInfo) {
+        let oldUsernamesDescription = ``
+
+        if (plrNobloxInfo.oldNames) {
+            let count = 0
+            let maxCount = 5
+            for (const [i, name] of Object.entries(plrNobloxInfo.oldNames)) {
+                const oldName = name
+                if (count < maxCount) {
+                    count += 1
+                    if (oldUsernamesDescription == ``) {
+                        oldUsernamesDescription = `‣ Prior Usernames: **${oldName}`
+                    } else {
+                        oldUsernamesDescription += `, ${oldName}`
+                    }
+                } else {
+                    oldUsernamesDescription += `, & more...`
+                    break
+                }
+            }
+        }
+        oldUsernamesDescription += `**`
+        if (oldUsernamesDescription !== `**`) {
+            description += `${oldUsernamesDescription}\n`
+        }
+
+        description += `‣ Age: **${plrNobloxInfo.age}\n**`
+        description += `‣ Join Date: **${plrNobloxInfo.joinDate}\n**`
+
+        description += `\n`
+        description += `‣ Friend Count: **${plrNobloxInfo.friendCount}**\n`
+        description += `‣ Follower Count: **${plrNobloxInfo.followerCount}\n**`
+        description += `‣ Following Count: **${plrNobloxInfo.followingCount}\n\n**`
+
+        blurbFieldValue = `*${plrNobloxInfo.blurb}*`
+    }
+
+    return new MessageEmbed()
+        .setColor(`RED`)
+        .setTitle(`${String(cachedUsername)}'s Roblox Account`)
+        .setURL(`https://www.roblox.com/users/${robloxId}/profile`)
+        .setAuthor({
+            name: "Prestige Infocenter",
+            iconURL: "https://i.imgur.com/y4Gpo0V.png"
+        })
+        .setDescription(description)
+        .setThumbnail(avatarUrl)
+        .setImage("https://i.imgur.com/rxNB16Q.png")
+        .addFields(
+            {name: "Blurb", value: blurbFieldValue || '*N/A*', inline: false}
+        )
+        //.setFooter({iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Missing Prestige? Please allow up to 72 hours`})
+        .setTimestamp(Date.now())
+}
 module.exports = {
     name: "profile",
 
@@ -159,19 +243,22 @@ module.exports = {
         console.log("MEMBERS:")
         console.log(members)
         let results = ''
-        if (category == "info") {
-            results = new MessageEmbed().setTitle("TESTTT").setDescription(":OO").setColor("#FEE75C")
+        if (category == "robloxinfo") {
+            //results = new MessageEmbed().setTitle("TESTTT").setDescription(":OO").setColor("#FEE75C")
+            results = await playerInfoEmbed(interaction, members)
             //await getTopTotalPrestige()
         } else if (category == "prestige") {
             results = await totalPrestigeEmbed(interaction, members)
         }
 
-        console.log("GOT RESULTS????")
-        console.log(results)
-        console.log("GOT RESULTS????")
-        interaction.message.edit({ embeds: [results] })
-        interaction.deferReply();
-        interaction.deleteReply();
+        //console.log("GOT RESULTS????")
+        //console.log(results)
+        //console.log("GOT RESULTS????")
+        if (results) {
+            interaction.message.edit({ embeds: [results] })
+            interaction.deferReply();
+            interaction.deleteReply();
+        }
         /*  
         if (interaction.replied) {
            // console.log("REPLIED")

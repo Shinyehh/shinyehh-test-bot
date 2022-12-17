@@ -23,8 +23,8 @@ const run = async (client, interaction) => {
         ],
         components: [
             new MessageActionRow().addComponents([
-                new MessageButton().setCustomId(`profile-prestige-${members}`).setStyle("PRIMARY").setLabel("Prestige"),
-                new MessageButton().setCustomId(`profile-info-${members}`).setStyle("PRIMARY").setLabel("Group Info"),
+                new MessageButton().setCustomId(`profile-prestige-${members}`).setStyle("PRIMARY").setEmoji("💻"),
+                new MessageButton().setCustomId(`profile-robloxinfo-${members}`).setStyle("PRIMARY").setLabel("🟥"),
             ])
         ]
     })
