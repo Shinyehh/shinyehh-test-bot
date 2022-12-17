@@ -1,4 +1,4 @@
-const { MessageActionRow, MessageButton, MessageEmbed } = require("discord.js")
+const { MessageEmbed } = require("discord.js")
 const rankData = require('../config/ranks.json')
 
 const getRankFields = async(interaction) => {
