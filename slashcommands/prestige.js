@@ -3,6 +3,7 @@ const noblox = require('noblox.js')
 const { getRankNameInGUF, getRankIdInGUF, getRankNameFromID, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 const rankData = require('../config/ranks.json')
+const auditLogChannel = "1053552179652341821"
 
 const prestigeLimits = {
     dP: 10,
@@ -212,6 +213,57 @@ const sendSuccessEmbed = async (robloxId, robloxName, currentRankName, newRankNa
     embedsSent.push(embedReply)
 
     await interaction.channel.send({ embeds: [embedReply] })
+}
+
+const sendAuditLogEmbed = async(interaction, robloxName, prestige, reason) => {
+    //console.log(interaction.guild.channels)
+    const channel = interaction.guild.channels.cache.find(channel => channel.id == auditLogChannel)
+
+    if (channel) {
+
+        let description = ``
+
+        let userAwardingPrestige = interaction.user
+        if (userAwardingPrestige) {
+            description += `**${userAwardingPrestige.username}#${userAwardingPrestige.discriminator}** awarded `
+        }
+
+        if (description == ``) {
+            description = "Awarded "
+        }
+
+        description += `**${robloxName}** `
+
+        let multiple = false
+        given = Object.keys(prestige).map((type) => {
+            if (prestige[type] !== 0) {
+                if (!multiple) {
+                    description += `${prestige[type]} ${type}`
+                    multiple = true
+                } else {
+                    description += `, ${prestige[type]} ${type}`
+                }
+            }
+        })
+        description +=`\n`
+        description += `**Reason:** ${reason}`
+        
+
+        const embedReply = new MessageEmbed()
+        .setColor(`#FFA500`)
+        .setTitle(`Audit Log`)
+        .setAuthor({
+            name: "Prestige Infocenter",
+            iconURL: "https://i.imgur.com/y4Gpo0V.png"
+        })
+        .setImage('https://i.imgur.com/910F0td.png')
+        // Given prestige
+        .setDescription(`${description}`)
+        .setTimestamp(Date.now())
+        
+        
+        await channel.send({embeds: [embedReply]})
+    } 
 }
 
 const sendFinalSuccessEmbed = async (interaction) => {
@@ -455,6 +507,7 @@ const run = async (client, interaction) => {
                     nextRankInfo = await getNextRankInfo(newRankId, newRankName)
                 }
                 sendSuccessEmbed(robloxId, robloxName, currentRankName, newRankName, changeRankAction, prestige, newPrestige, nextRankInfo, interaction, reason, embedsSent)
+                sendAuditLogEmbed(interaction, robloxName, prestige, reason)
             } else {
                 sendCouldNotFindEmbed(player, interaction)
             }
@@ -479,10 +532,13 @@ module.exports = {
     description: "Add prestige to a member",
     //perm: "KICK_MEMBERS",
 
+    //Different tiers for command use
     highcomPerm: process.env.ADMIRAL_ROLE,
-    officerPerm: process.env.OFFICER_ROLE,
+    officerPerm: process.env.OFFICER_ROLE, 
 
-    rolePermission: process.env.OFFICER_ROLE,
+    rolePermission: process.env.OFFICER_ROLE, //Role required to use the command at all
+
+    allowedChannels: ["1046994370622132295", "1047690023870402610"],
 
     options: [
         {

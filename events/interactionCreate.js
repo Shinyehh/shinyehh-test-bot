@@ -50,6 +50,20 @@ const handleSlashCommand = (bot, interaction) => {
         }
 
     }
+
+    if (slashcmd.allowedChannels) {
+        let channelId = String(interaction.channelId)
+        if (!channelId) return interaction.reply("Error: Cannot find channel!")
+
+        let correctChannel = false
+        for (const id of slashcmd.allowedChannels) {
+            if (id == channelId) {
+                correctChannel = true
+                break
+            }
+        }
+        if (!correctChannel) return interaction.reply("Error: Cannot use this command in this channel!")
+    }
     
         slashcmd.run(client, interaction)
 }
