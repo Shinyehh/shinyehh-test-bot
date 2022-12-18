@@ -1,8 +1,9 @@
 const { getRobloxUsersFromMembers, getRankIdInGUF, getRankNameInGUF } = require('../lib/functions')
 const { db } = require('../lib/firebase')
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js')
+const { MessageActionRow, MessageButton, MessageEmbed, DiscordAPIError } = require('discord.js')
 const noblox = require('noblox.js')
 const rankData = require('../config/ranks.json')
+const { async } = require('@firebase/util')
 
 const getNextRankInfo = async(rankId) => {
     const currentRankId = Number(rankId)
@@ -141,13 +142,45 @@ const totalPrestigeEmbed = async(interaction, members) => {
         .setTimestamp(Date.now())
 }
 
-const playerInfoEmbed = async(interaction, members) => {
+const playerDiscordInfoEmbed = async(interaction, members, bot) => {
     const robloxData = await getRobloxUsersFromMembers([members])
     if (!robloxData) {
         console.log("Cannot find roblox data")
         return
     }
-    console.log(robloxData)
+
+    let { robloxId, cachedUsername } = robloxData[0]
+    let { id, name} = robloxData[0]
+
+    robloxId = robloxId || id
+    cachedUsername = cachedUsername || name
+
+    let discordId = robloxData.discordId || members
+    discordId = Number(discordId)
+    if (!discordId) {
+        console.log("No discord Id found")
+        return
+    }
+    //console.log(`DISCORD ID: ${discordId}`)
+    let guild = await bot.guilds.cache.get(process.env.GUILDID)
+    //console.log(guild)
+    let discordUser = await guild.members.cache.get(String(discordId))
+    //console.log(guild)
+    //console.log(guild.members)
+   //discordUser = await guild.members.fetch(discordId)
+   console.log(discordUser)
+
+
+    return
+}
+
+const playerRobloxInfoEmbed = async(interaction, members) => {
+    const robloxData = await getRobloxUsersFromMembers([members])
+    if (!robloxData) {
+        console.log("Cannot find roblox data")
+        return
+    }
+
     let { robloxId, cachedUsername } = robloxData[0]
     let { id, name} = robloxData[0]
 
@@ -202,6 +235,24 @@ const playerInfoEmbed = async(interaction, members) => {
         description += `‣ Join Date: **${plrNobloxInfo.joinDate}\n**`
 
         description += `\n`
+
+        let groups = await noblox.getGroups(robloxId)
+        let primaryGroupData
+        if (groups) {
+            for (const [i, data] of Object.entries(groups)) {
+                if (data.IsPrimary) {
+                    primaryGroupData = data
+                    break
+                }
+            }
+        }
+        if (primaryGroupData) {
+           description += `‣ Primary Group: **${primaryGroupData.Name}**\n`
+           description += `‣ Rank: **${primaryGroupData.Role}**\n`
+           description += `‣ Member Count: **${primaryGroupData.MemberCount}**\n`
+           description += `‣ Link: https://www.roblox.com/groups/${primaryGroupData.Id}/-\n\n`
+        }
+
         description += `‣ Friend Count: **${plrNobloxInfo.friendCount}**\n`
         description += `‣ Follower Count: **${plrNobloxInfo.followerCount}\n**`
         description += `‣ Following Count: **${plrNobloxInfo.followingCount}\n\n**`
@@ -240,34 +291,18 @@ module.exports = {
             })
         }
 
-        console.log("MEMBERS:")
-        console.log(members)
         let results = ''
         if (category == "robloxinfo") {
-            //results = new MessageEmbed().setTitle("TESTTT").setDescription(":OO").setColor("#FEE75C")
-            results = await playerInfoEmbed(interaction, members)
-            //await getTopTotalPrestige()
+            results = await playerRobloxInfoEmbed(interaction, members)
         } else if (category == "prestige") {
             results = await totalPrestigeEmbed(interaction, members)
+        } else if (category == "discordinfo") {
+            results = await playerDiscordInfoEmbed(interaction, members, bot)
         }
-
-        //console.log("GOT RESULTS????")
-        //console.log(results)
-        //console.log("GOT RESULTS????")
         if (results) {
             interaction.message.edit({ embeds: [results] })
             interaction.deferReply();
             interaction.deleteReply();
         }
-        /*  
-        if (interaction.replied) {
-           // console.log("REPLIED")
-           
-            return interaction.editReply({ embeds: [embedReply] })
-        } else {
-          //  console.log("NOT REPLIED?")
-            return interaction.reply({ embeds: [embedReply] })
-        }
-        */
     }
 }

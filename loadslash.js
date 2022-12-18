@@ -21,7 +21,7 @@ let bot = {
 }
 
 //const guildId = "1046506345060376657" //i.e. Alexserver
-const guildId = "1045539034811875408" //i.e. Shinyserver
+const guildId = process.env.GUILDID//"1045539034811875408" //i.e. Shinyserver
 
 client.slashcommands = new Discord.Collection()
 
