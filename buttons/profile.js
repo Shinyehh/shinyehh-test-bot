@@ -143,9 +143,20 @@ const totalPrestigeEmbed = async (interaction, members) => {
 }
 
 const playerDiscordInfoEmbed = async (interaction, member, bot) => {
-    const robloxData = await getRobloxUsersFromMembers([member])
-    console.log(robloxData)
-    const discordId = await getDiscordIdFromRobloxId(robloxData[0].id)
+    let discordId
+    const isDiscordId = String(Number(member)) !== "NaN"
+    if (!isDiscordId) {
+        const robloxData = await getRobloxUsersFromMembers([member])
+        const discordData = await getDiscordIdFromRobloxId(robloxData[0].id)
+        discordId = discordData.discordUsers[0].user.id
+        console.log("using id from roblox name given")
+    } else {
+        discordId = member
+        console.log("using mentioned player's id")
+    }
+    console.log(discordId)
+    const person = bot.users.cache.get(discordId);
+    console.log(person)
 }
 
 const playerRobloxInfoEmbed = async (interaction, members) => {
