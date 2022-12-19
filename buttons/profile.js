@@ -1,15 +1,15 @@
-const { getRobloxUsersFromMembers, getRankIdInGUF, getRankNameInGUF } = require('../lib/functions')
+const { getRobloxUsersFromMembers, getRankIdInGUF, getRankNameInGUF, getDiscordIdFromRobloxId } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 const { MessageActionRow, MessageButton, MessageEmbed, DiscordAPIError } = require('discord.js')
 const noblox = require('noblox.js')
 const rankData = require('../config/ranks.json')
 const { async } = require('@firebase/util')
 
-const getNextRankInfo = async(rankId) => {
+const getNextRankInfo = async (rankId) => {
     const currentRankId = Number(rankId)
     let nextRankId = currentRankId
     let nextRankInfo
-    
+
     for (const [name, rank] of Object.entries(rankData)) {
         const id = Number(name)
         if (id > nextRankId) {
@@ -23,7 +23,7 @@ const getNextRankInfo = async(rankId) => {
 
         let secondaryPrestige = nextRankInfo.secondaryPrestige
         let secondaryTypes
-        
+
         for (const type of secondaryPrestige) {
             if (secondaryTypes == null) {
                 secondaryTypes = type
@@ -33,21 +33,21 @@ const getNextRankInfo = async(rankId) => {
         }
 
         return {
-            ["RankName"] : nextRankInfo.name,
-            ["Total"] : Number(nextRankInfo.total),
-            ["TotalSecondary"] : Number(nextRankInfo.secondaryPrestigeValue),
-            ["SecondaryTypesTable"] : nextRankInfo.secondaryPrestige,
-            ["SecondaryTypesText"] : secondaryTypes
+            ["RankName"]: nextRankInfo.name,
+            ["Total"]: Number(nextRankInfo.total),
+            ["TotalSecondary"]: Number(nextRankInfo.secondaryPrestigeValue),
+            ["SecondaryTypesTable"]: nextRankInfo.secondaryPrestige,
+            ["SecondaryTypesText"]: secondaryTypes
         }
     }
     return
 }
 
-const totalPrestigeEmbed = async(interaction, members) => {
+const totalPrestigeEmbed = async (interaction, members) => {
     const robloxData = await getRobloxUsersFromMembers([members])
     console.log(robloxData)
     let { robloxId, cachedUsername } = robloxData[0]
-    let { id, name} = robloxData[0]
+    let { id, name } = robloxData[0]
 
     robloxId = robloxId || id
     cachedUsername = cachedUsername || name
@@ -56,11 +56,11 @@ const totalPrestigeEmbed = async(interaction, members) => {
     if (!robloxData) {
         //await interaction.message.send("Could not retrieve roblox data")
         console.log("Could not find roblox data")
-        return 
+        return
     }
     const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
     const avatarUrl = avatarData[0].imageUrl
-    
+
     let prestigeRef = db.collection('PrestigeDatabase').doc(String(robloxId))
     const doc = await prestigeRef.get();
 
@@ -93,29 +93,29 @@ const totalPrestigeEmbed = async(interaction, members) => {
             }
         }
         if (nextRankInfo && nextRankTotalPrestige && nextRankName) {
-            
+
             let totalPrestigeToNextRank = nextRankTotalPrestige - currentTotalPrestige
             if (totalPrestigeToNextRank < 0) {
                 totalPrestigeToNextRank = 0
             }
 
-            let totalSecondaryPrestigeToNextRank =  nextRankTotalSecondaryPrestige - currentTotalSecondaryPrestige
+            let totalSecondaryPrestigeToNextRank = nextRankTotalSecondaryPrestige - currentTotalSecondaryPrestige
             if (totalSecondaryPrestigeToNextRank < 0) {
                 totalSecondaryPrestigeToNextRank = 0
             }
-            
+
             nextRankDescription = `**${totalPrestigeToNextRank}** Total Prestige`
             if (secondaryTypesTable && secondaryTypesText && currentTotalSecondaryPrestige) {
                 nextRankDescription += ` (incl. **${totalSecondaryPrestigeToNextRank}** ${secondaryTypesText})`
             }
             nextRankDescription += ` remaining for **${nextRankName} (${nextRankTotalPrestige} Total`
-           
+
             if (nextRankTotalSecondaryPrestige && secondaryTypesText) {
                 nextRankDescription += ` incl. ${nextRankTotalSecondaryPrestige} ${secondaryTypesText})**`
             } else {
                 nextRankDescription += `)**`
             }
-            
+
         }
         if (nextRankDescription) {
             description += nextRankDescription
@@ -138,43 +138,17 @@ const totalPrestigeEmbed = async(interaction, members) => {
             { name: 'lP', value: String(prestige.lP), inline: true },
         )
         .setThumbnail(avatarUrl)
-        .setFooter({iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Missing Prestige? Please allow up to 72 hours`})
+        .setFooter({ iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Missing Prestige? Please allow up to 72 hours` })
         .setTimestamp(Date.now())
 }
 
-const playerDiscordInfoEmbed = async(interaction, members, bot) => {
-    const robloxData = await getRobloxUsersFromMembers([members])
-    if (!robloxData) {
-        console.log("Cannot find roblox data")
-        return
-    }
-
-    let { robloxId, cachedUsername } = robloxData[0]
-    let { id, name} = robloxData[0]
-
-    robloxId = robloxId || id
-    cachedUsername = cachedUsername || name
-
-    let discordId = robloxData.discordId || members
-    discordId = Number(discordId)
-    if (!discordId) {
-        console.log("No discord Id found")
-        return
-    }
-    //console.log(`DISCORD ID: ${discordId}`)
-    let guild = await bot.guilds.cache.get(process.env.GUILDID)
-    //console.log(guild)
-    let discordUser = await guild.members.cache.get(String(discordId))
-    //console.log(guild)
-    //console.log(guild.members)
-   //discordUser = await guild.members.fetch(discordId)
-   console.log(discordUser)
-
-
-    return
+const playerDiscordInfoEmbed = async (interaction, member, bot) => {
+    const robloxData = await getRobloxUsersFromMembers([member])
+    console.log(robloxData)
+    const discordId = await getDiscordIdFromRobloxId(robloxData[0].id)
 }
 
-const playerRobloxInfoEmbed = async(interaction, members) => {
+const playerRobloxInfoEmbed = async (interaction, members) => {
     const robloxData = await getRobloxUsersFromMembers([members])
     if (!robloxData) {
         console.log("Cannot find roblox data")
@@ -182,7 +156,7 @@ const playerRobloxInfoEmbed = async(interaction, members) => {
     }
 
     let { robloxId, cachedUsername } = robloxData[0]
-    let { id, name} = robloxData[0]
+    let { id, name } = robloxData[0]
 
     robloxId = robloxId || id
     cachedUsername = cachedUsername || name
@@ -191,17 +165,17 @@ const playerRobloxInfoEmbed = async(interaction, members) => {
     if (!robloxData || !robloxId || !cachedUsername) {
         //await interaction.message.send("Could not retrieve roblox data")
         console.log("Could not find roblox data")
-        return 
+        return
     }
     const avatarData = await noblox.getPlayerThumbnail(robloxId, 48, 'png', true, 'headshot')
     const avatarUrl = avatarData[0].imageUrl
 
     let description = ``
-    const plrNobloxInfo = await noblox.getPlayerInfo({userId: Number(robloxId)})
+    const plrNobloxInfo = await noblox.getPlayerInfo({ userId: Number(robloxId) })
     description = `‣ Username: **${cachedUsername}**`
     if (plrNobloxInfo && plrNobloxInfo.displayName && plrNobloxInfo.displayName !== cachedUsername) {
         description += ` (Display Name: **${plrNobloxInfo.displayName}**\n)`
-    } else {description += `\n`}
+    } else { description += `\n` }
 
     let blurbFieldValue
     description += `‣ User Id: **${robloxId}**\n`
@@ -247,10 +221,10 @@ const playerRobloxInfoEmbed = async(interaction, members) => {
             }
         }
         if (primaryGroupData) {
-           description += `‣ Primary Group: **${primaryGroupData.Name}**\n`
-           description += `‣ Rank: **${primaryGroupData.Role}**\n`
-           description += `‣ Member Count: **${primaryGroupData.MemberCount}**\n`
-           description += `‣ Link: https://www.roblox.com/groups/${primaryGroupData.Id}/-\n\n`
+            description += `‣ Primary Group: **${primaryGroupData.Name}**\n`
+            description += `‣ Rank: **${primaryGroupData.Role}**\n`
+            description += `‣ Member Count: **${primaryGroupData.MemberCount}**\n`
+            description += `‣ Link: https://www.roblox.com/groups/${primaryGroupData.Id}/-\n\n`
         }
 
         description += `‣ Friend Count: **${plrNobloxInfo.friendCount}**\n`
@@ -272,7 +246,7 @@ const playerRobloxInfoEmbed = async(interaction, members) => {
         .setThumbnail(avatarUrl)
         .setImage("https://i.imgur.com/rxNB16Q.png")
         .addFields(
-            {name: "Blurb", value: blurbFieldValue || '*N/A*', inline: false}
+            { name: "Blurb", value: blurbFieldValue || '*N/A*', inline: false }
         )
         //.setFooter({iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Missing Prestige? Please allow up to 72 hours`})
         .setTimestamp(Date.now())
@@ -300,8 +274,8 @@ module.exports = {
             results = await playerDiscordInfoEmbed(interaction, members, bot)
         }
         if (results) {
-            interaction.message.edit({ embeds: [results] })
             interaction.deferReply();
+            await interaction.message.edit({ embeds: [results] })
             interaction.deleteReply();
         }
     }

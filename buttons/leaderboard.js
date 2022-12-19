@@ -97,9 +97,9 @@ module.exports = {
             })
             .setDescription(results)
             .setTimestamp(Date.now())
-        
-        interaction.message.edit({ embeds: [embedReply] })
+
         interaction.deferReply();
+        await interaction.message.edit({ embeds: [embedReply] })
         interaction.deleteReply();
         /*  
         if (interaction.replied) {
