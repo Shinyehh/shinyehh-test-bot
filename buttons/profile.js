@@ -155,7 +155,7 @@ const playerDiscordInfoEmbed = async (interaction, member, bot) => {
         console.log("using mentioned player's id")
     }
     console.log(discordId)
-    const person = bot.users.cache.get(discordId);
+    const person = bot.users.fetch(discordId)//cache.get(discordId);
     console.log(person)
 }
 
