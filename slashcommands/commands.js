@@ -16,26 +16,26 @@ const run = async (client, interaction) => {
             return interaction.reply({
                 embeds: [
                     new MessageEmbed()
-                    .setColor(`#FEE75C`)
-                    .setTitle(`Commands`)
-                    .setAuthor({
-                        name: "Prestige Infocenter",
-                        iconURL: "https://i.imgur.com/y4Gpo0V.png"
-                    })
-                    //.setDescription(description)
-                    .addFields(                          
-                        {name: "Infocenter Commands", value: infocenterCommands, inline: false},
-                        {name: "Fun Commands", value: funCommands, inline: false},
-                    )
-                   // .setThumbnail(`https://i.imgur.com/y4Gpo0V.png`)
-                    .setFooter({iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Questions? Reach out to a member of the highcommand`})
-                    .setTimestamp(Date.now())
+                        .setColor(`#FEE75C`)
+                        .setTitle(`Commands`)
+                        .setAuthor({
+                            name: "Prestige Infocenter",
+                            iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                        })
+                        //.setDescription(description)
+                        .addFields(
+                            { name: "Infocenter Commands", value: infocenterCommands, inline: false },
+                            { name: "Fun Commands", value: funCommands, inline: false },
+                        )
+                        // .setThumbnail(`https://i.imgur.com/y4Gpo0V.png`)
+                        .setFooter({ iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Questions? Reach out to a member of the highcommand` })
+                        .setTimestamp(Date.now())
                 ],
             })
         }
     }
-    catch(err){
-        if (err){
+    catch (err) {
+        if (err) {
             console.error(err)
             if (!interaction.replied) {
                 return interaction.reply(`Failed to retrieve rank information!`)
@@ -47,12 +47,6 @@ const run = async (client, interaction) => {
 module.exports = {
     name: "commands",
     description: "View a list of commands you can use with the Prestige Infocenter bot and what they do",
-    //perm: "KICK_MEMBERS",
-
-    //highcomPerm: process.env.ADMIRAL_ROLE,
-    //officerPerm: process.env.OFFICER_ROLE,
-
-    //rolePermission: process.env.OFFICER_ROLE,
 
     options: [],
     run

@@ -1,8 +1,10 @@
 const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
+const { admiralRole, officerRole, owner, group } = require('../config/config')
 const { getRankNameInGUF, getRankIdInGUF, getRankNameFromID, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 const rankData = require('../config/ranks.json')
+const { config } = require('dotenv')
 const auditLogChannel = "1053552179652341821"
 
 const prestigeLimits = {
@@ -23,7 +25,7 @@ function checkIfCanGiveLeadershipPrestige(interaction) {
     const member = interaction.member
 
     // console.log(member.id)
-    if (member.id !== process.env.OWNER) {
+    if (member.id !== owner) {
         const guild = member.guild
         if (!guild) return false
 
@@ -154,7 +156,7 @@ const sendSuccessEmbed = async (robloxId, robloxName, currentRankName, newRankNa
     given = Object.keys(prestige).map((type) => {
         if (prestige[type] !== 0) {
             let plusSign = ""
-            if (prestige[type] > 0){plusSign = "+"}
+            if (prestige[type] > 0) { plusSign = "+" }
             description += `${newPrestige[type] - prestige[type]} ${type} -> ${newPrestige[type]} ${type} **(${plusSign}${prestige[type]} ${type})** \n`
         }
     })
@@ -185,7 +187,7 @@ const sendSuccessEmbed = async (robloxId, robloxName, currentRankName, newRankNa
     if (nextRankInfo && nextRankInfo.RankName && nextRankInfo.Total) {
         description += `\nNext Rank: **${nextRankInfo.RankName} (${nextRankInfo.Total} Total${secondaryPrestigeDescription})**\n`
     }
-    
+
     const embedReply = new MessageEmbed()
         .setColor(color)
         //.setTitle(`${currentRankName} ${robloxName}`)
@@ -215,7 +217,7 @@ const sendSuccessEmbed = async (robloxId, robloxName, currentRankName, newRankNa
     await interaction.channel.send({ embeds: [embedReply] })
 }
 
-const sendAuditLogEmbed = async(interaction, robloxName, prestige, reason) => {
+const sendAuditLogEmbed = async (interaction, robloxName, prestige, reason) => {
     //console.log(interaction.guild.channels)
     const channel = interaction.guild.channels.cache.find(channel => channel.id == auditLogChannel)
 
@@ -245,25 +247,25 @@ const sendAuditLogEmbed = async(interaction, robloxName, prestige, reason) => {
                 }
             }
         })
-        description +=`\n`
+        description += `\n`
         description += `**Reason:** ${reason}`
-        
+
 
         const embedReply = new MessageEmbed()
-        .setColor(`#FFA500`)
-        .setTitle(`Audit Log`)
-        .setAuthor({
-            name: "Prestige Infocenter",
-            iconURL: "https://i.imgur.com/y4Gpo0V.png"
-        })
-        .setImage('https://i.imgur.com/910F0td.png')
-        // Given prestige
-        .setDescription(`${description}`)
-        .setTimestamp(Date.now())
-        
-        
-        await channel.send({embeds: [embedReply]})
-    } 
+            .setColor(`#FFA500`)
+            .setTitle(`Audit Log`)
+            .setAuthor({
+                name: "Prestige Infocenter",
+                iconURL: "https://i.imgur.com/y4Gpo0V.png"
+            })
+            .setImage('https://i.imgur.com/910F0td.png')
+            // Given prestige
+            .setDescription(`${description}`)
+            .setTimestamp(Date.now())
+
+
+        await channel.send({ embeds: [embedReply] })
+    }
 }
 
 const sendFinalSuccessEmbed = async (interaction) => {
@@ -331,14 +333,14 @@ const getNextRankInfo = async (rankId, rankName) => {
             } else {
                 secondaryTypes = secondaryTypes + "/" + type
             }
-            
+
         }
-       //console.log(secondaryTypes)
+        //console.log(secondaryTypes)
         return {
-            ["RankName"] : nextRankInfo.name,
-            ["Total"] : nextRankInfo.total,
-            ["TotalSecondary"] : nextRankInfo.secondaryPrestigeValue,
-            ["SecondaryTypes"] : secondaryTypes
+            ["RankName"]: nextRankInfo.name,
+            ["Total"]: nextRankInfo.total,
+            ["TotalSecondary"]: nextRankInfo.secondaryPrestigeValue,
+            ["SecondaryTypes"]: secondaryTypes
         }
     }
     return
@@ -356,7 +358,7 @@ const tryPromote = async (robloxId, prestige) => {
 
     if (rankData[String(currentRankId)] == null) {
         console.log(`Cannot toggle rank for this user.`)
-        return {["RankId"] : highestRankId, ["CurrentRankName"]: currentRankName}
+        return { ["RankId"]: highestRankId, ["CurrentRankName"]: currentRankName }
     }
     let previousId = 1
     let previousName = rankData["1"].name
@@ -367,13 +369,13 @@ const tryPromote = async (robloxId, prestige) => {
         if (currentTotalPrestige < rank.total) { //if (prestige[rank.mainPrestige] < rank.mainPrestigeValue) {
             // Main prestige requirement NOT met
             if (id <= highestRankId && previousId > 0) {
-                await noblox.setRank(process.env.GROUP, robloxId, previousId)//6870149, robloxId, highestRankId)
+                await noblox.setRank(group, robloxId, previousId)
                 console.log(`USER WAS DEMOTED TO RANK ${previousId} DUE TO NOT HAVING THE APPROPRIATE TOTAL NUMBER OF PRESTIGE`)
                 highestRankId = previousId
                 highestRankName = previousName
             }
             //break
-            return {["CurrentRankId"]: currentRankId, ["NewRankId"] : highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName}
+            return { ["CurrentRankId"]: currentRankId, ["NewRankId"]: highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName }
         }
 
         let secondaryTotal = 0
@@ -384,19 +386,20 @@ const tryPromote = async (robloxId, prestige) => {
         }
         //console.log(`SECONDARY PRESTIGE TOTAL: ${secondaryTotal}`)
         if (secondaryTotal < rank.secondaryPrestigeValue) {
-           // Secondary prestige NOT met
+            // Secondary prestige NOT met
             if (id <= highestRankId && previousId > 0) {
-                await noblox.setRank(process.env.GROUP, robloxId, id)//6870149, robloxId, highestRankId)
+                await noblox.setRank(group, robloxId, id)
                 console.log(`USER WAS DEMOTED TO RANK ${previousId} DUE TO NOT HAVING THE APPROPRIATE SECONDARY PRESTIGE TOTAL`)
                 highestRankId = previousId
                 highestRankName = previousName
             }
             //break
-            return {["CurrentRankId"]: currentRankId, ["NewRankId"] : highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName}
+            return { ["CurrentRankId"]: currentRankId, ["NewRankId"]: highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName }
         }
 
         //console.log(`id: ${id}; highestRankId: ${highestRankId}`)
-        if (id > highestRankId) { console.log("YES")
+        if (id > highestRankId) {
+            console.log("YES")
             highestRankId = id
             highestRankName = rank.name
         }
@@ -405,16 +408,16 @@ const tryPromote = async (robloxId, prestige) => {
         previousId = id
         previousName = rank.name
     }
- 
+
     if (highestRankId > currentRankId) {
         console.log("PROMOTING")
-        await noblox.setRank(process.env.GROUP, robloxId, highestRankId)//6870149, robloxId, highestRankId)
+        await noblox.setRank(group, robloxId, highestRankId)
         console.log("PROMOTED!!!")
         //return {["RankId"] : highestRankId, ["RankName"]: highestRankName}//highestRankName
-        return {["CurrentRankId"]: currentRankId, ["NewRankId"] : highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName}
+        return { ["CurrentRankId"]: currentRankId, ["NewRankId"]: highestRankId, ["CurrentRankName"]: currentRankName, ["NewRankName"]: highestRankName }
     }
     //console.log("HIGHEST RANK NAME: " + highestRankName)
-    return {["CurrentRankId"]: currentRankId, ["CurrentRankName"]: currentRankName} //highestRankName
+    return { ["CurrentRankId"]: currentRankId, ["CurrentRankName"]: currentRankName } //highestRankName
 }
 
 const run = async (client, interaction) => {
@@ -434,7 +437,7 @@ const run = async (client, interaction) => {
         return await interaction.followUp("Error awarding prestige")
     }
 
-    if (interaction.member.id !== process.env.OWNER) {
+    if (interaction.member.id !== owner) {
 
         //Check if player is allowed to give leadership prestige (must be highcom):
         let canGiveLeadershipPrestige = checkIfCanGiveLeadershipPrestige(interaction)
@@ -483,7 +486,7 @@ const run = async (client, interaction) => {
             if (robloxId && robloxName) {
                 console.log(`AWARDING PRESTIGE TO ${robloxName}`)
                 const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
-                
+
                 const rankInfo = await tryPromote(robloxId, newPrestige)
                 const currentRankName = rankInfo.CurrentRankName
                 const newRankName = rankInfo.NewRankName
@@ -503,7 +506,7 @@ const run = async (client, interaction) => {
                 let nextRankInfo
                 if (!newRankName && !newRankId && currentRankId && currentRankName) {
                     nextRankInfo = await getNextRankInfo(currentRankId, currentRankName)
-                } else if (newRankName && newRankId){
+                } else if (newRankName && newRankId) {
                     nextRankInfo = await getNextRankInfo(newRankId, newRankName)
                 }
                 sendSuccessEmbed(robloxId, robloxName, currentRankName, newRankName, changeRankAction, prestige, newPrestige, nextRankInfo, interaction, reason, embedsSent)
@@ -530,13 +533,12 @@ const run = async (client, interaction) => {
 module.exports = {
     name: "prestige",
     description: "Add prestige to a member",
-    //perm: "KICK_MEMBERS",
 
     //Different tiers for command use
-    highcomPerm: process.env.ADMIRAL_ROLE,
-    officerPerm: process.env.OFFICER_ROLE, 
+    highcomPerm: admiralRole,
+    officerPerm: officerRole,
 
-    rolePermission: process.env.OFFICER_ROLE, //Role required to use the command at all
+    rolePermission: officerRole, //Role required to use the command at all
 
     allowedChannels: ["1046994370622132295", "1047690023870402610"],
 

@@ -1,4 +1,5 @@
 const { rolePermission } = require("../slashcommands/prestige")
+const { owner } = require('../config/config')
 
 module.exports = {
     name: "interactionCreate",
@@ -36,16 +37,16 @@ const handleSlashCommand = (bot, interaction) => {
     if (slashcmd.rolePermission) {
         const member = interaction.member
 
-       // console.log(member.id)
-        if (member.id !== process.env.OWNER) {
+        // console.log(member.id)
+        if (member.id !== owner) {
             const guild = member.guild
             if (!guild) return interaction.reply("Error: Member using this command is not in a guild!")
-    
+
             const role = guild.roles.cache.get(rolePermission)
             if (!role) return interaction.reply("Error: The required role to used this command does not exist!")
             const rolePosition = role.position
             const highestUserRolePosition = member.roles.highest.position
-    
+
             if (highestUserRolePosition < rolePosition) return interaction.reply("You are not allowed to use this slash command")
         }
 
@@ -64,6 +65,6 @@ const handleSlashCommand = (bot, interaction) => {
         }
         if (!correctChannel) return interaction.reply("Error: Cannot use this command in this channel!")
     }
-    
-        slashcmd.run(client, interaction)
+
+    slashcmd.run(client, interaction)
 }

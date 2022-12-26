@@ -1,7 +1,7 @@
 const { MessageEmbed } = require("discord.js")
 const rankData = require('../config/ranks.json')
 
-const getRankFields = async(interaction) => {
+const getRankFields = async (interaction) => {
 
     let rankFields = []
 
@@ -9,7 +9,7 @@ const getRankFields = async(interaction) => {
         const id = Number(name)
         const totalPrestige = rank.total
         const totalSecondaryPrestige = rank.secondaryPrestigeValue
-       // const roleid = rank.roleid
+        // const roleid = rank.roleid
 
         const secondaryPrestige = rank.secondaryPrestige
         let secondaryTypes
@@ -25,18 +25,18 @@ const getRankFields = async(interaction) => {
         let fieldVal
 
         fieldVal = `‣ID: **${id}** \n`
-        
+
         //if (roleid) {
         //    fieldVal += `Role: <@&${roleid}>\n`
         //}
 
         fieldVal += `‣Total Prestige: **${totalPrestige}**\n`
-        
+
         if (secondaryTypes) {
             fieldVal += `‣Secondary Prestige: **${totalSecondaryPrestige} ${secondaryTypes}**\n`
         }
         fieldVal += `**____________**`
-        rankFields.push({name: fieldName, value: fieldVal, inline: true})
+        rankFields.push({ name: fieldName, value: fieldVal, inline: true })
     }
     console.log(rankFields)
     return rankFields
@@ -55,24 +55,24 @@ const run = async (client, interaction) => {
             return interaction.reply({
                 embeds: [
                     new MessageEmbed()
-                    .setColor(`#FEE75C`)
-                    .setTitle(`Earnable Ranks`)
-                    //.setURL(path_to_prestige_document_to_be_written_and_published)
-                    .setAuthor({
-                        name: "Prestige Infocenter",
-                        iconURL: "https://i.imgur.com/y4Gpo0V.png"
-                    })
-                    .setDescription(description)
-                    .addFields(rankFields)
-                    .setThumbnail(`https://i.imgur.com/y4Gpo0V.png`)
-                    .setFooter({iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Questions? Reach out to a member of the highcommand`})
-                    .setTimestamp(Date.now())
+                        .setColor(`#FEE75C`)
+                        .setTitle(`Earnable Ranks`)
+                        //.setURL(path_to_prestige_document_to_be_written_and_published)
+                        .setAuthor({
+                            name: "Prestige Infocenter",
+                            iconURL: "https://i.imgur.com/y4Gpo0V.png"
+                        })
+                        .setDescription(description)
+                        .addFields(rankFields)
+                        .setThumbnail(`https://i.imgur.com/y4Gpo0V.png`)
+                        .setFooter({ iconURL: `https://i.imgur.com/y4Gpo0V.png`, text: `Questions? Reach out to a member of the highcommand` })
+                        .setTimestamp(Date.now())
                 ],
             })
         }
     }
-    catch(err){
-        if (err){
+    catch (err) {
+        if (err) {
             console.error(err)
             if (!interaction.replied) {
                 return interaction.reply(`Failed to retrieve rank information!`)
@@ -84,12 +84,6 @@ const run = async (client, interaction) => {
 module.exports = {
     name: "ranks",
     description: "View detailed prestige requirements for each rank",
-    //perm: "KICK_MEMBERS",
-
-    //highcomPerm: process.env.ADMIRAL_ROLE,
-    //officerPerm: process.env.OFFICER_ROLE,
-
-    //rolePermission: process.env.OFFICER_ROLE,
 
     options: [],
     run
