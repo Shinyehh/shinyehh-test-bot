@@ -1,6 +1,6 @@
 const { MessageEmbed } = require('discord.js')
 const noblox = require('noblox.js')
-const { admiralRole, officerRole, owner, group } = require('../config/config')
+const { admiralRole, officerRole, shinyDiscordId, group } = require('../config/config')
 const { getRankNameInGUF, getRankIdInGUF, getRankNameFromID, getRobloxUsersFromMembers } = require('../lib/functions')
 const { db } = require('../lib/firebase')
 const rankData = require('../config/ranks.json')
@@ -24,8 +24,7 @@ const prestigeNames = {
 function checkIfCanGiveLeadershipPrestige(interaction) {
     const member = interaction.member
 
-    // console.log(member.id)
-    if (member.id !== owner) {
+    if (member.id !== shinyDiscordId) {
         const guild = member.guild
         if (!guild) return false
 
@@ -437,7 +436,8 @@ const run = async (client, interaction) => {
         return await interaction.followUp("Error awarding prestige")
     }
 
-    if (interaction.member.id !== owner) {
+    // If you are not Shiny. Apply these checks
+    if (interaction.member.id !== shinyDiscordId) {
 
         //Check if player is allowed to give leadership prestige (must be highcom):
         let canGiveLeadershipPrestige = checkIfCanGiveLeadershipPrestige(interaction)
@@ -464,56 +464,50 @@ const run = async (client, interaction) => {
     let membersText = String(members.replace(/[,@<>!]/g, ""))
     membersText = membersText.replace(/\s\s+/g, ' ');
     let memberArray = membersText.split(" ")
-    //interaction.deferReply();
 
     if (!reason) return interaction.followUp("Invalid reason")
 
     const robloxData = await getRobloxUsersFromMembers(memberArray)
-    //console.log(robloxData)
     if (!robloxData) return await interaction.followUp("Could not retrieve roblox data")
 
-    let embedsSent = []
+
     for (const player of robloxData) {
-
-        if (!player) {
-            interaction.channel.send("Invalid player")
-        } //return interaction.reply("Invalid discord user id")
-
         try {
             const robloxId = player.id || player.robloxId
             const robloxName = player.name || player.cachedUsername
 
-            if (robloxId && robloxName) {
-                console.log(`AWARDING PRESTIGE TO ${robloxName}`)
-                const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
-
-                const rankInfo = await tryPromote(robloxId, newPrestige)
-                const currentRankName = rankInfo.CurrentRankName
-                const newRankName = rankInfo.NewRankName
-
-                const currentRankId = rankInfo.CurrentRankId
-                const newRankId = rankInfo.NewRankId
-                //console.log(`${rankName} ${rankId}`)
-                let changeRankAction
-                if (currentRankName && newRankName && currentRankId && newRankId) {
-                    if (Number(currentRankId) < Number(newRankId)) {
-                        changeRankAction = "Promoted"
-                    } else if (Number(currentRankId) > Number(newRankId)) {
-                        changeRankAction = "Demoted"
-                    }
-                }
-
-                let nextRankInfo
-                if (!newRankName && !newRankId && currentRankId && currentRankName) {
-                    nextRankInfo = await getNextRankInfo(currentRankId, currentRankName)
-                } else if (newRankName && newRankId) {
-                    nextRankInfo = await getNextRankInfo(newRankId, newRankName)
-                }
-                sendSuccessEmbed(robloxId, robloxName, currentRankName, newRankName, changeRankAction, prestige, newPrestige, nextRankInfo, interaction, reason, embedsSent)
-                sendAuditLogEmbed(interaction, robloxName, prestige, reason)
-            } else {
+            if (!(robloxId && robloxName)) {
                 sendCouldNotFindEmbed(player, interaction)
+                continue
             }
+
+            console.log(`AWARDING PRESTIGE TO ${robloxName}`)
+            const newPrestige = await givePrestige(String(robloxId), robloxName, prestige)
+
+            const rankInfo = await tryPromote(robloxId, newPrestige)
+            const currentRankName = rankInfo.CurrentRankName
+            const newRankName = rankInfo.NewRankName
+
+            const currentRankId = rankInfo.CurrentRankId
+            const newRankId = rankInfo.NewRankId
+            let changeRankAction
+            if (currentRankId && newRankId) {
+                if (Number(currentRankId) < Number(newRankId)) {
+                    changeRankAction = "Promoted"
+                } else if (Number(currentRankId) > Number(newRankId)) {
+                    changeRankAction = "Demoted"
+                }
+            }
+
+            let nextRankInfo
+            if (!newRankName && !newRankId && currentRankId && currentRankName) {
+                nextRankInfo = await getNextRankInfo(currentRankId, currentRankName)
+            } else if (newRankName && newRankId) {
+                nextRankInfo = await getNextRankInfo(newRankId, newRankName)
+            }
+            sendSuccessEmbed(robloxId, robloxName, currentRankName, newRankName, changeRankAction, prestige, newPrestige, nextRankInfo, interaction, reason, embedsSent)
+            sendAuditLogEmbed(interaction, robloxName, prestige, reason)
+
         }
 
         catch (err) {

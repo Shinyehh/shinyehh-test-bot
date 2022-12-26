@@ -25,7 +25,7 @@ const run = async (client, interaction) => {
             new MessageActionRow().addComponents([
                 new MessageButton().setCustomId(`profile-prestige-${members}`).setStyle("PRIMARY").setEmoji("💻"),
                 new MessageButton().setCustomId(`profile-robloxinfo-${members}`).setStyle("PRIMARY").setEmoji("🟥"),
-                new MessageButton().setCustomId(`profile-discordinfo-${members}`).setStyle("PRIMARY").setEmoji("🟪")
+                // new MessageButton().setCustomId(`profile-discordinfo-${members}`).setStyle("PRIMARY").setEmoji("🟪")
             ])
         ]
     })

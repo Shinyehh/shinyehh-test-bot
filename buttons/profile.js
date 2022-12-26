@@ -281,8 +281,8 @@ module.exports = {
             results = await playerRobloxInfoEmbed(interaction, members)
         } else if (category == "prestige") {
             results = await totalPrestigeEmbed(interaction, members)
-        } else if (category == "discordinfo") {
-            results = await playerDiscordInfoEmbed(interaction, members, bot)
+            // } else if (category == "discordinfo") {
+            //     results = await playerDiscordInfoEmbed(interaction, members, bot)
         }
         if (results) {
             interaction.deferReply();

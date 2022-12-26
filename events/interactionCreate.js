@@ -1,5 +1,5 @@
 const { rolePermission } = require("../slashcommands/prestige")
-const { owner } = require('../config/config')
+const { shinyDiscordId } = require('../config/config')
 
 module.exports = {
     name: "interactionCreate",
@@ -38,7 +38,7 @@ const handleSlashCommand = (bot, interaction) => {
         const member = interaction.member
 
         // console.log(member.id)
-        if (member.id !== owner) {
+        if (member.id !== shinyDiscordId) {
             const guild = member.guild
             if (!guild) return interaction.reply("Error: Member using this command is not in a guild!")
 

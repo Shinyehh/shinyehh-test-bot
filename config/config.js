@@ -1,5 +1,5 @@
 
-export const owner = "110634487234203648"
+export const shinyDiscordId = "110634487234203648"
 export const admiralRole = "1048097558184075284"
 export const officerRole = "1048097803353739345"
 
